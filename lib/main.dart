@@ -1,3 +1,5 @@
+// lib/main.dart (REVISI FINAL WARNA)
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -37,21 +39,30 @@ class MyApp extends StatelessWidget {
         theme: ThemeData(
           // --- REVISI TEMA WARNA MULAI DI SINI ---
           
-          // Primary Color: Menggunakan rgb(98, 130, 93) -> #62825D
-          primaryColor: const Color(0xFF62825D), 
+          // Primary Color: rgb(28, 53, 45) -> #1C352D
+          primaryColor: const Color(0xFF1C352D), 
           
-          // PrimarySwatch (untuk kompatibilitas): Dibuat mendekati Primary Color baru
-          primarySwatch: Colors.green, 
+          // PrimarySwatch (diatur ke abu-abu netral)
+          primarySwatch: Colors.grey, 
           
-          // Color Scheme: Mengatur warna aksen/sekunder
+          // Warna Background Utama: rgb(249, 246, 243) -> #F9F6F3
+          scaffoldBackgroundColor: const Color(0xFFF9F6F3),
+
+          // Color Scheme
           colorScheme: ColorScheme.fromSwatch(
-            primarySwatch: Colors.green,
-            // BARIS primaryColorDark DIHAPUS DARI SINI (memperbaiki error)
+            primarySwatch: Colors.grey,
           ).copyWith(
-            // Secondary (Aksen): Menggunakan rgb(158, 223, 156) -> #9EDF9C
-            secondary: const Color(0xFF9EDF9C), 
-            // Tetapkan Primary color secara eksplisit di ColorScheme agar widget M3 menggunakannya.
-            primary: const Color(0xFF62825D),
+            // Primary: #1C352D
+            primary: const Color(0xFF1C352D),
+            
+            // Secondary (Aksen): rgb(166, 178, 139) -> #A6B28B
+            secondary: const Color(0xFFA6B28B), 
+            
+            // Tertiary (BottomNavBar BG): MENGGUNAKAN SECONDARY YANG BARU (#A6B28B)
+            tertiary: const Color(0xFFA6B28B), // <-- REVISI UTAMA DI SINI
+            
+            // Surface (untuk Card, Sheet): rgb(245, 201, 176) -> #F5C9B0
+            surface: const Color(0xFFF5C9B0),
           ),
           
           // --- REVISI TEMA WARNA SELESAI ---
@@ -63,7 +74,7 @@ class MyApp extends StatelessWidget {
   }
 }
 
-// ✅ Halaman yang menentukan apakah ke MainView (Home Flow) atau ke Login
+// Halaman yang menentukan apakah ke MainView (Home Flow) atau ke Login (Tetap Sama)
 class RootPage extends StatelessWidget {
   const RootPage({super.key});
 
@@ -72,14 +83,12 @@ class RootPage extends StatelessWidget {
     final userController = Provider.of<UserController>(context);
 
     if (userController.isLoading) {
-      // Tampilkan splash screen atau loading saat sesi dicek
       return const Scaffold(
         body: Center(child: CircularProgressIndicator()),
       );
     }
 
     if (userController.currentUser != null) {
-      // NAVIGASI BARU: Ke MainView yang memiliki BottomNavBar
       return const MainView();
     } else {
       return const LoginPage();

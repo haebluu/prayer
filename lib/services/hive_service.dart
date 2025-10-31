@@ -1,75 +1,73 @@
+// lib/services/hive_service.dart
+
 import 'package:hive_flutter/hive_flutter.dart';
 import '../models/user_model.dart';
-// Asumsikan Anda memiliki import untuk DoaModel di sini juga
 
 class HiveService {
-  // Deklarasi nama Box sebagai static const (konstanta)
   static const String userBoxName = 'userBox';
+  static const String settingsBoxName = 'settingsBox'; // Nama Box Baru
+  static const String totalSavingsKey = 'totalSavings'; 
   static const String bookmarkBoxName = 'bookmarkBox'; 
 
   // ======================================================
-  // 1. INISIALISASI (Metode Statis, Dipanggil di main.dart)
+  // 1. INISIALISASI (Box Baru Ditambahkan)
   // ======================================================
 
-  /// Melakukan inisialisasi Hive dan mendaftarkan Adapter.
   static Future<void> init() async { 
-    // Inisialisasi Hive Flutter
     await Hive.initFlutter();
-
-    // Registrasi adapter
-    // PERHATIKAN: Anda harus memastikan semua adapter Model Hive sudah dibuat (flutter pub run build_runner)
     Hive.registerAdapter(UserModelAdapter());
-    // Hive.registerAdapter(DoaModelAdapter()); // Tambahkan ini saat DoaModel final
     
-    // Buka semua Box yang diperlukan
     await Hive.openBox<UserModel>(userBoxName);
-    // await Hive.openBox<DoaModel>(bookmarkBoxName); // Tambahkan ini untuk Bookmark
+    
+    // Box BARU untuk pengaturan/nilai primitif (FIX: error saat menyimpan double)
+    await Hive.openBox<dynamic>(settingsBoxName);
   }
   
   // ======================================================
-  // 2. GETTER (Akses ke Box)
+  // 2. GETTER
   // ======================================================
   
-  // Getter untuk mengakses User Box (aman karena diasumsikan sudah dibuka di init())
   Box<UserModel> get userBox => Hive.box<UserModel>(userBoxName);
+  Box<dynamic> get settingsBox => Hive.box<dynamic>(settingsBoxName); 
   
-  // Getter untuk Bookmark Box (akan digunakan oleh BookmarkService)
-  // Box<DoaModel> get bookmarkBox => Hive.box<DoaModel>(bookmarkBoxName); 
-
   // ======================================================
-  // 3. METODE PENGGUNA (Digunakan oleh UserController)
+  // 3. METODE TOTAL TABUNGAN (Menggunakan settingsBox)
   // ======================================================
 
-  /// Menyimpan atau memperbarui pengguna.
+  double getTotalSavings() {
+    return settingsBox.get(totalSavingsKey) as double? ?? 0.0;
+  }
+
+  Future<void> addSavings(double amountInIDR) async {
+    final currentTotal = getTotalSavings();
+    final newTotal = currentTotal + amountInIDR;
+    await settingsBox.put(totalSavingsKey, newTotal); // FIX: Menggunakan settingsBox
+  }
+  
+  // ======================================================
+  // 4. METODE PENGGUNA
+  // ======================================================
+
   Future<void> saveUser(UserModel user) async {
-    // put(key, value) menggunakan UID sebagai key unik
     await userBox.put(user.uid, user);
   }
 
-  /// Mencari pengguna berdasarkan Email (untuk Login/Register).
   UserModel? getUserByEmail(String email) {
     try {
-      // Menggunakan firstWhere untuk mencari kecocokan
       return userBox.values.firstWhere((u) => u.email == email);
     } catch (e) {
-      // Jika firstWhere melempar StateError (tidak ditemukan), kembalikan null
       return null;
     }
   }
 
-  /// Mengambil pengguna berdasarkan UID (untuk checkSession).
   UserModel? getUser(String uid) { 
-    // Menggunakan get(key) adalah cara cepat mencari berdasarkan UID
     return userBox.get(uid); 
   }
 
-  /// Memperbarui data pengguna yang ada.
   Future<void> updateUser(UserModel user) async {
-    // put() berdasarkan UID untuk update
     await userBox.put(user.uid, user);
   }
 
-  /// Menghapus semua data pengguna (Hanya digunakan untuk tujuan debugging atau clear data).
   Future<void> clearAllUsers() async { 
     await userBox.clear();
   }
