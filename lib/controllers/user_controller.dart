@@ -1,3 +1,5 @@
+// lib/controllers/user_controller.dart
+
 import 'package:flutter/material.dart';
 import 'package:prayer/models/user_model.dart';
 import 'package:prayer/services/encryption_service.dart';
@@ -6,40 +8,34 @@ import 'package:prayer/services/session_service.dart';
 import 'package:uuid/uuid.dart';
 
 class UserController extends ChangeNotifier {
+  // Deklarasikan dan inisialisasi instance HiveService
   final HiveService _hiveService = HiveService(); 
 
   UserModel? _currentUser;
-  bool _isLoading = false;
+  bool _isLoading = true; 
 
   UserModel? get currentUser => _currentUser;
   bool get isLoading => _isLoading;
 
   UserController() {
-    checkSession();
+    initController();
   }
 
-  // Revisi: Memastikan _isLoading direset meskipun ada error
+  Future<void> initController() async {
+    await checkSession();
+  }
+
   Future<void> checkSession() async {
     _isLoading = true;
-    notifyListeners(); // Memberi tahu UI untuk menampilkan loading
+    notifyListeners();
 
-    try {
-      final userId = await SessionService.getSessionToken();
-      
-      if (userId != null) {
-        _currentUser = _hiveService.getUser(userId); 
-        
-        if (_currentUser == null) {
-           await SessionService.clearSession();
-        }
-      }
-    } catch (e) {
-      print('Error during session check: $e'); 
-      _currentUser = null;
-    } finally {
-      _isLoading = false;
-      notifyListeners(); // Memastikan UI berhenti loading
+    final userId = await SessionService.getSessionToken();
+    if (userId != null) {
+      _currentUser = _hiveService.getUser(userId); 
     }
+
+    _isLoading = false;
+    notifyListeners();
   }
 
 
@@ -74,11 +70,12 @@ class UserController extends ChangeNotifier {
     return null;
   }
 
+  // REVISI: Nonaktifkan Auto-Login setelah registrasi
   Future<String?> register(String name, String email, String password) async {
     _isLoading = true;
     notifyListeners();
 
-    final existing = _hiveService.getUserByEmail(email); 
+    final existing = _hiveService.getUserByEmail(email);
     if (existing != null) {
       _isLoading = false;
       notifyListeners();
@@ -95,16 +92,18 @@ class UserController extends ChangeNotifier {
       doaOpened: 0,
     );
 
-    await _hiveService.saveUser(newUser); 
-    
-    // Auto-login setelah register
-    await SessionService.createSession(newUser.uid);
-    _currentUser = newUser;
+    await _hiveService.saveUser(newUser);
+
+    // HAPUS BARIS AUTO-LOGIN: Pengguna harus login manual setelah register
+    // HAPUS: await SessionService.createSession(newUser.uid);
+    // HAPUS: _currentUser = newUser;
+
     _isLoading = false;
     notifyListeners();
-    return null; 
+    return null;
   }
 
+  // LOGOUT (Pastikan sintaks bersih)
   Future<void> logout() async {
     await SessionService.clearSession();
     _currentUser = null;
@@ -123,7 +122,7 @@ class UserController extends ChangeNotifier {
         passwordHash: user.passwordHash,
       );
       _currentUser = updatedUser;
-      await _hiveService.updateUser(updatedUser); 
+      await _hiveService.updateUser(updatedUser);
       notifyListeners();
     }
   }
