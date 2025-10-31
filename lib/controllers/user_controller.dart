@@ -1,53 +1,53 @@
 import 'package:flutter/material.dart';
 import 'package:prayer/models/user_model.dart';
-// Asumsi import service Anda sudah benar
 import 'package:prayer/services/encryption_service.dart';
 import 'package:prayer/services/hive_service.dart'; 
 import 'package:prayer/services/session_service.dart';
 import 'package:uuid/uuid.dart';
 
 class UserController extends ChangeNotifier {
-  // Deklarasikan dan inisialisasi instance HiveService di sini
-  final HiveService _hiveService = HiveService(); // <--- PERBAIKAN: INISIALISASI SERVICE
+  final HiveService _hiveService = HiveService(); 
 
   UserModel? _currentUser;
-  bool _isLoading = true; 
+  bool _isLoading = false;
 
   UserModel? get currentUser => _currentUser;
   bool get isLoading => _isLoading;
 
   UserController() {
-    initController();
+    checkSession();
   }
 
-  Future<void> initController() async {
-    await checkSession();
-  }
-
+  // Revisi: Memastikan _isLoading direset meskipun ada error
   Future<void> checkSession() async {
     _isLoading = true;
-    notifyListeners();
+    notifyListeners(); // Memberi tahu UI untuk menampilkan loading
 
-    final userId = await SessionService.getSessionToken();
-    if (userId != null) {
-      // PERBAIKAN: Ganti HiveService.getCurrentUser menjadi _hiveService.getUser(userId) 
-      // (Mengasumsikan nama metode di HiveService Anda adalah 'getUser')
-      _currentUser = _hiveService.getUser(userId); 
-      // Catatan: Jika HiveService.getCurrentUser adalah metode statis, gunakan user.uid
+    try {
+      final userId = await SessionService.getSessionToken();
+      
+      if (userId != null) {
+        _currentUser = _hiveService.getUser(userId); 
+        
+        if (_currentUser == null) {
+           await SessionService.clearSession();
+        }
+      }
+    } catch (e) {
+      print('Error during session check: $e'); 
+      _currentUser = null;
+    } finally {
+      _isLoading = false;
+      notifyListeners(); // Memastikan UI berhenti loading
     }
-
-    _isLoading = false;
-    notifyListeners();
   }
-
 
 
   Future<String?> login(String email, String password) async {
     _isLoading = true;
     notifyListeners();
 
-    // Gunakan instance yang dideklarasikan
-    final user = _hiveService.getUserByEmail(email); // <--- PERBAIKAN
+    final user = _hiveService.getUserByEmail(email); 
 
     if (user == null || !EncryptionService.verifyPassword(password, user.passwordHash)) {
       _isLoading = false;
@@ -58,7 +58,6 @@ class UserController extends ChangeNotifier {
     await SessionService.createSession(user.uid);
 
     final updatedUser = UserModel(
-      // ... (Field konstruktor tetap sama)
       uid: user.uid,
       email: user.email,
       name: user.name,
@@ -67,8 +66,7 @@ class UserController extends ChangeNotifier {
       doaOpened: user.doaOpened,
     );
 
-    // Gunakan instance yang dideklarasikan
-    await _hiveService.updateUser(updatedUser); // <--- PERBAIKAN
+    await _hiveService.updateUser(updatedUser); 
 
     _currentUser = updatedUser;
     _isLoading = false;
@@ -80,8 +78,7 @@ class UserController extends ChangeNotifier {
     _isLoading = true;
     notifyListeners();
 
-    // Gunakan instance yang dideklarasikan
-    final existing = _hiveService.getUserByEmail(email); // <--- PERBAIKAN
+    final existing = _hiveService.getUserByEmail(email); 
     if (existing != null) {
       _isLoading = false;
       notifyListeners();
@@ -98,12 +95,14 @@ class UserController extends ChangeNotifier {
       doaOpened: 0,
     );
 
-    // Gunakan instance yang dideklarasikan
-    await _hiveService.saveUser(newUser); // <--- PERBAIKAN
-
+    await _hiveService.saveUser(newUser); 
+    
+    // Auto-login setelah register
+    await SessionService.createSession(newUser.uid);
+    _currentUser = newUser;
     _isLoading = false;
     notifyListeners();
-    return null;
+    return null; 
   }
 
   Future<void> logout() async {
@@ -116,7 +115,6 @@ class UserController extends ChangeNotifier {
     if (_currentUser != null) {
       final user = _currentUser!;
       final updatedUser = UserModel(
-        // ... (Field konstruktor tetap sama)
         uid: user.uid,
         email: user.email,
         name: user.name,
@@ -125,8 +123,7 @@ class UserController extends ChangeNotifier {
         passwordHash: user.passwordHash,
       );
       _currentUser = updatedUser;
-      // Gunakan instance yang dideklarasikan
-      await _hiveService.updateUser(updatedUser); // <--- PERBAIKAN
+      await _hiveService.updateUser(updatedUser); 
       notifyListeners();
     }
   }
