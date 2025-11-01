@@ -268,7 +268,7 @@ class _SavingsPageState extends State<SavingsPage> {
       children: [
         // 1. App Bar
         AppBar(
-          title: const Text('Tabungan Haji/Umroh'),
+          title: const Text('Tabungan Haji/Umroh', style: TextStyle(color: Colors.white),),
           backgroundColor: theme.primaryColor,
         ),
         
@@ -327,7 +327,7 @@ class _SavingsPageState extends State<SavingsPage> {
                         ),
                         const SizedBox(height: 5),
                         Text(
-                          'Total Asli: ${_formatCurrencyResult(_totalSavingsIDR, 'IDR')}',
+                          'Total dalam Rupiah: ${_formatCurrencyResult(_totalSavingsIDR, 'IDR')}',
                           style: const TextStyle(fontSize: 12, color: Colors.white54),
                         ),
                       ],
@@ -378,7 +378,7 @@ class _SavingsPageState extends State<SavingsPage> {
                           style: TextStyle(
                             fontSize: 16, 
                             fontWeight: FontWeight.w600, 
-                            color: theme.primaryColor // Warna utama agar kontras
+                            color: theme.colorScheme.tertiary // Warna utama agar kontras
                           )
                         ),
                       ],
@@ -441,23 +441,23 @@ class _SavingsPageState extends State<SavingsPage> {
                 Card(
                   elevation: 4,
                   // Menggunakan warna aksen sekunder untuk kontras
-                  color: theme.colorScheme.secondary.withOpacity(0.8), 
+                  color: theme.colorScheme.tertiary.withOpacity(0.8), 
                   child: Padding(
                     padding: const EdgeInsets.all(20.0),
                     child: Column(
                       children: [
                         Text('Nilai Input dalam $_targetInputCurrency:', 
-                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: theme.primaryColor)),
+                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
                         const SizedBox(height: 10),
                         Text(
                           _formatCurrencyResult(_convertedInputAmount, _targetInputCurrency),
-                          style: TextStyle(fontSize: 32, color: theme.primaryColor, fontWeight: FontWeight.bold),
+                          style: TextStyle(fontSize: 32, color: Colors.white, fontWeight: FontWeight.bold),
                         ),
                         const SizedBox(height: 10),
                         Text(
                           _statusMessage, 
                           textAlign: TextAlign.center,
-                          style: TextStyle(color: theme.primaryColor, fontSize: 12),
+                          style: TextStyle(color: Colors.white, fontSize: 12),
                         ),
                       ],
                     ),

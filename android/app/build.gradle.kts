@@ -10,20 +10,22 @@ android {
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
+    // START FIX: Mengaktifkan Core Library Desugaring
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
+        // Mengubah ke Java 1.8 (Java 8) untuk Desugaring
+        sourceCompatibility = JavaVersion.VERSION_1_8 
+        targetCompatibility = JavaVersion.VERSION_1_8
+        isCoreLibraryDesugaringEnabled = true // BARIS KUNCI 1
     }
 
     kotlinOptions {
-        jvmTarget = JavaVersion.VERSION_11.toString()
+        // Sesuaikan jvmTarget ke 1.8
+        jvmTarget = JavaVersion.VERSION_1_8.toString()
     }
+    // END FIX
 
     defaultConfig {
-        // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
         applicationId = "com.example.prayer"
-        // You can update the following values to match your application needs.
-        // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = flutter.minSdkVersion
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
@@ -32,8 +34,6 @@ android {
 
     buildTypes {
         release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
             signingConfig = signingConfigs.getByName("debug")
         }
     }
@@ -41,4 +41,10 @@ android {
 
 flutter {
     source = "../.."
+}
+
+// BARIS KUNCI 2: Tambahkan blok dependencies di akhir file
+dependencies {
+    // Tambahkan dependensi Desugaring untuk mendukung fitur Java 8+ pada Android lama
+    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.0.4")
 }

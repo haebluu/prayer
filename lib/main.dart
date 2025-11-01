@@ -1,6 +1,7 @@
 // lib/main.dart (REVISI FINAL WARNA)
 
 import 'package:flutter/material.dart';
+import 'package:prayer/services/notification_service.dart';
 import 'package:provider/provider.dart';
 
 // Import Services dan Controllers
@@ -18,6 +19,7 @@ void main() async {
   
   // Inisialisasi Service Global (Hive dan Session)
   await HiveService.init(); 
+  await NotificationService.init();
   await SessionService.init(); 
 
   runApp(const MyApp());
@@ -37,32 +39,29 @@ class MyApp extends StatelessWidget {
         debugShowCheckedModeBanner: false,
         title: 'Doa & Dzikir App',
         theme: ThemeData(
-          // --- REVISI TEMA WARNA MULAI DI SINI ---
-          
-          // Primary Color: rgb(28, 53, 45) -> #1C352D
-          primaryColor: const Color(0xFF1C352D), 
+         /// Primary Color: rgb(67, 118, 108) -> #43766C
+          primaryColor: const Color(0xFF43766C), 
           
           // PrimarySwatch (diatur ke abu-abu netral)
           primarySwatch: Colors.grey, 
           
-          // Warna Background Utama: rgb(249, 246, 243) -> #F9F6F3
-          scaffoldBackgroundColor: const Color(0xFFF9F6F3),
+          // Warna Background Utama: rgb(248, 250, 229) -> #F8FAE5
+          scaffoldBackgroundColor: const Color(0xFFF8FAE5),
 
           // Color Scheme
           colorScheme: ColorScheme.fromSwatch(
             primarySwatch: Colors.grey,
           ).copyWith(
-            // Primary: #1C352D
-            primary: const Color(0xFF1C352D),
-            
-            // Secondary (Aksen): rgb(166, 178, 139) -> #A6B28B
-            secondary: const Color(0xFFA6B28B), 
-            
-            // Tertiary (BottomNavBar BG): MENGGUNAKAN SECONDARY YANG BARU (#A6B28B)
-            tertiary: const Color(0xFFA6B28B), // <-- REVISI UTAMA DI SINI
-            
-            // Surface (untuk Card, Sheet): rgb(245, 201, 176) -> #F5C9B0
-            surface: const Color(0xFFF5C9B0),
+            // Primary: #43766C
+            primary: const Color(0xFF43766C),
+            // Secondary (Aksen): rgb(177, 148, 112) -> #B19470
+            secondary: const Color(0xFFB19470), 
+            // Tertiary (BottomNavBar BG): rgb(118, 69, 59) -> #76453B
+            tertiary: const Color(0xFF76453B), 
+            // Surface (untuk Card, Sheet): Menggunakan warna Background untuk tampilan bersih
+            surface: const Color(0xFFF8FAE5),
+            // Warna untuk Error/Kontras Teks
+            onPrimary: Colors.white,
           ),
           
           // --- REVISI TEMA WARNA SELESAI ---

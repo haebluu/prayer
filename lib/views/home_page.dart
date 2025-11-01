@@ -1,16 +1,81 @@
 // lib/views/home_page.dart
 
 import 'package:flutter/material.dart';
-import 'package:prayer/services/notification_service.dart';
 import 'package:provider/provider.dart';
-import '../controllers/home_controller.dart';
-// ... import model lainnya (doa, dzikir, hadits)
+import 'package:flutter_local_notifications/flutter_local_notifications.dart'; // Wajib untuk cancelAll
+import '../controllers/home_controller.dart'; 
 import '../controllers/user_controller.dart';
+import '../services/notification_service.dart'; // Service Notifikasi
 import 'detail_doa_page.dart';
 
-// ... (Widget HomePage dan build method)
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
+
+  // Fungsi untuk menampilkan dialog status notifikasi
+  void _showNotificationStatusDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text("Status Pengingat Dzikir"),
+          content: FutureBuilder<List<PendingNotificationRequest>>(
+            // Menggunakan instance dari service
+            future: NotificationService.flutterLocalNotificationsPlugin.pendingNotificationRequests(),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const SizedBox(
+                  height: 50,
+                  child: Center(child: CircularProgressIndicator())
+                );
+              }
+              if (snapshot.hasError) {
+                return const Text("Gagal memuat status notifikasi.");
+              }
+              
+              final pendingNotifications = snapshot.data ?? [];
+              
+              if (pendingNotifications.isEmpty) {
+                return const Text("Pengingat saat ini DINONAKTIFKAN.");
+              }
+              
+              // Tampilkan daftar notifikasi yang dijadwalkan
+              return Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text("${pendingNotifications.length} Pengingat Dzikir AKTIF:", style: const TextStyle(fontWeight: FontWeight.bold)),
+                  ...pendingNotifications.map((n) => Text(
+                    "• ${n.title ?? 'Notifikasi'}",
+                    style: const TextStyle(fontSize: 14),
+                  )),
+                  const SizedBox(height: 10),
+                  const Text("Jadwal akan muncul besok pada pukul 05:30 dan 17:30.", style: TextStyle(fontSize: 12, color: Colors.grey)),
+                ],
+              );
+            },
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: const Text("Tutup"),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            TextButton(
+              child: const Text("Nonaktifkan Semua", style: TextStyle(color: Colors.red)),
+              onPressed: () async {
+                await NotificationService.cancelAllNotifications();
+                if (context.mounted) Navigator.of(context).pop();
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Semua Pengingat Dzikir telah dinonaktifkan.')),
+                );
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -30,6 +95,44 @@ class HomePage extends StatelessWidget {
             backgroundColor: theme.primaryColor,
             elevation: 0,
             automaticallyImplyLeading: false, 
+            actions: [ 
+              // Tombol untuk Mengaktifkan Notifikasi
+              IconButton(
+                icon: const Icon(Icons.notifications_active, color: Colors.white),
+                tooltip: 'Aktifkan Pengingat Dzikir',
+                onPressed: () async {
+                  // 1. Batalkan notifikasi lama
+                  await NotificationService.cancelAllNotifications(); 
+
+                  // 2. Jadwalkan yang baru
+                  await NotificationService.scheduleDailyNotification(
+                    id: 10, // ID unik
+                    hour: 5,
+                    minute: 30,
+                    title: 'Waktunya Dzikir Pagi',
+                    body: 'Yuk mulai hari dengan dzikir pagi!',
+                  );
+
+                  await NotificationService.scheduleDailyNotification(
+                    id: 20, // ID unik
+                    hour: 17,
+                    minute: 30,
+                    title: 'Waktunya Dzikir Sore',
+                    body: 'Luangkan waktu sebentar untuk dzikir sore.',
+                  );
+
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Pengingat Dzikir Pagi & Sore Aktif!')),
+                  );
+                },
+              ),
+              // Tombol untuk Melihat Status Notifikasi (Info)
+              IconButton(
+                icon: const Icon(Icons.info_outline, color: Colors.white),
+                tooltip: 'Cek Status Pengingat',
+                onPressed: () => _showNotificationStatusDialog(context),
+              ),
+            ],
           ),
           
           // 2. HERO HEADER (Judul & Search Bar)
@@ -43,44 +146,17 @@ class HomePage extends StatelessWidget {
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
                   child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text('Assalamualaikum, $userName!',
-                          style: const TextStyle(
-                            fontSize: 24,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                          ),
-                        ),
-                        IconButton(
-                          icon: const Icon(Icons.notifications_active, color: Colors.white),
-                          tooltip: 'Aktifkan Pengingat Dzikir',
-                          onPressed: () async {
-                            await NotificationService.scheduleDailyNotification(
-                            hour: 5,
-                            minute: 30,
-                            title: 'Waktunya Dzikir Pagi 🌅',
-                            body: 'Yuk mulai hari dengan dzikir pagi!',
-                          );
-
-                          await NotificationService.scheduleDailyNotification(
-                            hour: 17,
-                            minute: 30,
-                            title: 'Waktunya Dzikir Sore 🌆',
-                            body: 'Luangkan waktu sebentar untuk dzikir sore.',
-                          );
-
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text('Notifikasi dzikir pagi & sore telah dijadwalkan'),
-                                duration: Duration(seconds: 3),
-                              ),
-                            );
-                          },
-                        ),
-                      ],
-                    ),
-
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text('Assalamualaikum, $userName!', 
+                        style: const TextStyle( 
+                          fontSize: 24, 
+                          fontWeight: FontWeight.bold, 
+                          color: Colors.white
+                        )
+                      ),
+                    ],
+                  ),
                 ),
                 
                 // Search Bar
@@ -143,7 +219,6 @@ class HomePage extends StatelessWidget {
     if (controller.isLoadingDoa) {
       return const Center(child: CircularProgressIndicator());
     }
-    // FIX: Menggunakan errorDoa
     if (controller.errorDoa.isNotEmpty) {
       return Center(child: Text('Error: ${controller.errorDoa}'));
     }
@@ -152,6 +227,7 @@ class HomePage extends StatelessWidget {
     }
 
     return ListView.builder(
+      // FIX: Menambahkan physics untuk memperbaiki scrolling di TabBarView
       physics: const ClampingScrollPhysics(), 
       padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
       itemCount: controller.filteredDoa.length,
@@ -181,12 +257,8 @@ class HomePage extends StatelessWidget {
     );
   }
 
-  // lib/views/home_page.dart (REVISI FUNGSI _buildDzikirList)
-
-// ... (kode di atas tetap sama)
-
   Widget _buildDzikirList(HomeController controller, ThemeData theme) {
-    if (controller.isLoadingDzikir) {
+     if (controller.isLoadingDzikir) {
       return const Center(child: CircularProgressIndicator());
     }
     if (controller.errorDzikir.isNotEmpty) { 
@@ -199,12 +271,12 @@ class HomePage extends StatelessWidget {
     // Konversi type name untuk tampilan tab yang lebih rapi
     final Map<String, String> displayNameMap = {
       'pagi': 'Pagi', 
-      'sore': 'Sore',     
-      };
+      'sore': 'Sore', 
+      'sholat': 'Setelah Sholat', 
+    };
     
     final List<String> dzikirTypes = controller.dzikirTypes;
 
-    // Tambahkan DefaultTabController untuk tab internal Dzikir
     return DefaultTabController(
       length: dzikirTypes.length,
       child: Column(
@@ -242,7 +314,7 @@ class HomePage extends StatelessWidget {
                       margin: const EdgeInsets.symmetric(vertical: 6),
                       elevation: 1,
                       child: ListTile(
-                        title: Text('${dzikir.type.toUpperCase()} (${dzikir.ulang})', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                        title: Text('${displayNameMap[dzikir.type] ?? dzikir.type.toUpperCase()} (${dzikir.ulang})', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
                         subtitle: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
@@ -268,13 +340,10 @@ class HomePage extends StatelessWidget {
     );
   }
   
-  // ... (sisa fungsi _buildDoaList dan _buildHaditsList tetap sama)
-  
   Widget _buildHaditsList(HomeController controller, ThemeData theme) {
      if (controller.isLoadingHadits) {
       return const Center(child: CircularProgressIndicator());
     }
-    // FIX: Menggunakan errorHadits
     if (controller.errorHadits.isNotEmpty) { 
       return Center(child: Text('Error: ${controller.errorHadits}'));
     }
@@ -292,7 +361,6 @@ class HomePage extends StatelessWidget {
           margin: const EdgeInsets.symmetric(vertical: 6),
           elevation: 1,
           child: ExpansionTile(
-            // Menggunakan Judul yang dibuat di model
             title: Text(hadits.judul, style: const TextStyle(fontWeight: FontWeight.bold)),
             children: [
               Padding(

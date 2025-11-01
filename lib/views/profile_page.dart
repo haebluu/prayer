@@ -40,7 +40,7 @@ class ProfilePage extends StatelessWidget {
       slivers: [
         // 1. App Bar (menggunakan SliverAppBar)
         SliverAppBar(
-          title: const Text('Profil Mahasiswa'),
+          title: const Text('Profil Mahasiswa', style: TextStyle(color: Colors.white),),
           backgroundColor: theme.primaryColor,
           // Penting: Agar App Bar ini tidak memiliki tombol 'back' karena berada di tab
           automaticallyImplyLeading: false, 

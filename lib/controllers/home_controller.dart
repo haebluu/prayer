@@ -111,16 +111,18 @@ final List<String> _dzikirTypes = ['pagi', 'sore'];
 
   void setupDzikirNotifications() async {
   await NotificationService.scheduleDailyNotification(
+    id: 10,
     hour: 5,  // Jam 5 pagi
     minute: 30,
-    title: 'Waktunya Dzikir Pagi 🌅',
+    title: 'Dzikir Pagi',
     body: 'Yuk mulai hari dengan dzikir pagi!',
   );
 
   await NotificationService.scheduleDailyNotification(
+    id: 20,
     hour: 17, // Jam 5 sore
     minute: 30,
-    title: 'Waktunya Dzikir Sore 🌆',
+    title: 'Dzikir Sore',
     body: 'Luangkan waktu sebentar untuk dzikir sore.',
   );
 }
