@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:prayer/services/api_service.dart';
+import 'package:prayer/services/notification_service.dart';
 import '../models/doa_model.dart';
 import '../models/dzikir_model.dart'; 
 import '../models/hadits_model.dart'; 
@@ -16,7 +17,7 @@ class HomeController extends ChangeNotifier {
   List<HaditsModel> _allHadits = [];
 
   // --- STATE LISTS ---
-final List<String> _dzikirTypes = ['pagi', 'sore', 'setelah-sholat'];
+final List<String> _dzikirTypes = ['pagi', 'sore'];
   // --- LOADING STATES ---
   bool _isLoadingDoa = true;
   bool _isLoadingDzikir = true;
@@ -107,6 +108,22 @@ final List<String> _dzikirTypes = ['pagi', 'sore', 'setelah-sholat'];
       notifyListeners();
     }
   }
+
+  void setupDzikirNotifications() async {
+  await NotificationService.scheduleDailyNotification(
+    hour: 5,  // Jam 5 pagi
+    minute: 30,
+    title: 'Waktunya Dzikir Pagi 🌅',
+    body: 'Yuk mulai hari dengan dzikir pagi!',
+  );
+
+  await NotificationService.scheduleDailyNotification(
+    hour: 17, // Jam 5 sore
+    minute: 30,
+    title: 'Waktunya Dzikir Sore 🌆',
+    body: 'Luangkan waktu sebentar untuk dzikir sore.',
+  );
+}
 
   // =======================================================
   // FILTERING LOGIC

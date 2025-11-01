@@ -1,6 +1,7 @@
 // lib/views/home_page.dart
 
 import 'package:flutter/material.dart';
+import 'package:prayer/services/notification_service.dart';
 import 'package:provider/provider.dart';
 import '../controllers/home_controller.dart';
 // ... import model lainnya (doa, dzikir, hadits)
@@ -42,17 +43,44 @@ class HomePage extends StatelessWidget {
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
                   child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text('Assalamualaikum, $userName!', 
-                        style: const TextStyle( 
-                          fontSize: 24, 
-                          fontWeight: FontWeight.bold, 
-                          color: Colors.white
-                        )
-                      ),
-                    ],
-                  ),
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text('Assalamualaikum, $userName!',
+                          style: const TextStyle(
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.notifications_active, color: Colors.white),
+                          tooltip: 'Aktifkan Pengingat Dzikir',
+                          onPressed: () async {
+                            await NotificationService.scheduleDailyNotification(
+                            hour: 5,
+                            minute: 30,
+                            title: 'Waktunya Dzikir Pagi 🌅',
+                            body: 'Yuk mulai hari dengan dzikir pagi!',
+                          );
+
+                          await NotificationService.scheduleDailyNotification(
+                            hour: 17,
+                            minute: 30,
+                            title: 'Waktunya Dzikir Sore 🌆',
+                            body: 'Luangkan waktu sebentar untuk dzikir sore.',
+                          );
+
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('Notifikasi dzikir pagi & sore telah dijadwalkan'),
+                                duration: Duration(seconds: 3),
+                              ),
+                            );
+                          },
+                        ),
+                      ],
+                    ),
+
                 ),
                 
                 // Search Bar
@@ -171,9 +199,8 @@ class HomePage extends StatelessWidget {
     // Konversi type name untuk tampilan tab yang lebih rapi
     final Map<String, String> displayNameMap = {
       'pagi': 'Pagi', 
-      'sore': 'Sore', 
-      'sholat': 'Setelah Sholat',
-    };
+      'sore': 'Sore',     
+      };
     
     final List<String> dzikirTypes = controller.dzikirTypes;
 
