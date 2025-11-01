@@ -3,9 +3,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../controllers/home_controller.dart';
+// ... import model lainnya (doa, dzikir, hadits)
 import '../controllers/user_controller.dart';
 import 'detail_doa_page.dart';
 
+// ... (Widget HomePage dan build method)
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
 
@@ -94,11 +96,8 @@ class HomePage extends StatelessWidget {
           Expanded(
             child: TabBarView(
               children: [
-                // TAB 1: DOA
                 _buildDoaList(homeController, theme, context),
-                // TAB 2: DZIKIR
                 _buildDzikirList(homeController, theme),
-                // TAB 3: HADIS
                 _buildHaditsList(homeController, theme),
               ],
             ),
@@ -116,7 +115,7 @@ class HomePage extends StatelessWidget {
     if (controller.isLoadingDoa) {
       return const Center(child: CircularProgressIndicator());
     }
-    // FIX: Menampilkan error spesifik
+    // FIX: Menggunakan errorDoa
     if (controller.errorDoa.isNotEmpty) {
       return Center(child: Text('Error: ${controller.errorDoa}'));
     }
@@ -125,7 +124,6 @@ class HomePage extends StatelessWidget {
     }
 
     return ListView.builder(
-      // FIX: Menambahkan physics untuk memperbaiki scrolling di TabBarView
       physics: const ClampingScrollPhysics(), 
       padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
       itemCount: controller.filteredDoa.length,
@@ -155,11 +153,14 @@ class HomePage extends StatelessWidget {
     );
   }
 
+  // lib/views/home_page.dart (REVISI FUNGSI _buildDzikirList)
+
+// ... (kode di atas tetap sama)
+
   Widget _buildDzikirList(HomeController controller, ThemeData theme) {
-     if (controller.isLoadingDzikir) {
+    if (controller.isLoadingDzikir) {
       return const Center(child: CircularProgressIndicator());
     }
-    // FIX: Menampilkan error spesifik
     if (controller.errorDzikir.isNotEmpty) { 
       return Center(child: Text('Error: ${controller.errorDzikir}'));
     }
@@ -167,42 +168,86 @@ class HomePage extends StatelessWidget {
       return const Center(child: Text('Data Dzikir tidak ditemukan.'));
     }
     
-    return ListView.builder(
-      // FIX: Menambahkan physics
-      physics: const ClampingScrollPhysics(), 
-      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-      itemCount: controller.allDzikir.length,
-      itemBuilder: (context, index) {
-        final dzikir = controller.allDzikir[index];
-        return Card(
-          margin: const EdgeInsets.symmetric(vertical: 6),
-          elevation: 1,
-          child: ListTile(
-            title: Text('${dzikir.type.toUpperCase()} (${dzikir.ulang})', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-            subtitle: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const SizedBox(height: 5),
-                Text(dzikir.arab, 
-                  textAlign: TextAlign.right,
-                  style: TextStyle(fontFamily: 'Arial', fontSize: 20, color: theme.primaryColor),
-                ),
-                const SizedBox(height: 5),
-                Text(dzikir.indo, style: const TextStyle(fontStyle: FontStyle.italic)),
-              ],
+    // Konversi type name untuk tampilan tab yang lebih rapi
+    final Map<String, String> displayNameMap = {
+      'pagi': 'Pagi', 
+      'sore': 'Sore', 
+      'sholat': 'Setelah Sholat',
+    };
+    
+    final List<String> dzikirTypes = controller.dzikirTypes;
+
+    // Tambahkan DefaultTabController untuk tab internal Dzikir
+    return DefaultTabController(
+      length: dzikirTypes.length,
+      child: Column(
+        children: [
+          // Tab Bar Internal
+          Container(
+            color: theme.scaffoldBackgroundColor,
+            child: TabBar(
+              tabs: dzikirTypes.map((type) => Tab(text: displayNameMap[type] ?? type.toUpperCase())).toList(),
+              labelColor: theme.primaryColor,
+              unselectedLabelColor: Colors.grey,
+              indicatorColor: theme.colorScheme.secondary,
+              indicatorSize: TabBarIndicatorSize.tab,
+              indicatorWeight: 3.0,
             ),
-            isThreeLine: true,
           ),
-        );
-      },
+          
+          // Tab Bar View Internal
+          Expanded(
+            child: TabBarView(
+              children: dzikirTypes.map((type) {
+                final dzikirList = controller.getDzikirByType(type);
+                
+                if (dzikirList.isEmpty) {
+                  return Center(child: Text('Dzikir ${displayNameMap[type] ?? type} belum tersedia.'));
+                }
+                
+                return ListView.builder(
+                  physics: const ClampingScrollPhysics(), 
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                  itemCount: dzikirList.length,
+                  itemBuilder: (context, index) {
+                    final dzikir = dzikirList[index];
+                    return Card(
+                      margin: const EdgeInsets.symmetric(vertical: 6),
+                      elevation: 1,
+                      child: ListTile(
+                        title: Text('${dzikir.type.toUpperCase()} (${dzikir.ulang})', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                        subtitle: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const SizedBox(height: 5),
+                            Text(dzikir.arab, 
+                              textAlign: TextAlign.right,
+                              style: TextStyle(fontFamily: 'Arial', fontSize: 20, color: theme.primaryColor),
+                            ),
+                            const SizedBox(height: 5),
+                            Text(dzikir.indo, style: const TextStyle(fontStyle: FontStyle.italic)),
+                          ],
+                        ),
+                        isThreeLine: true,
+                      ),
+                    );
+                  },
+                );
+              }).toList(),
+            ),
+          ),
+        ],
+      ),
     );
   }
+  
+  // ... (sisa fungsi _buildDoaList dan _buildHaditsList tetap sama)
   
   Widget _buildHaditsList(HomeController controller, ThemeData theme) {
      if (controller.isLoadingHadits) {
       return const Center(child: CircularProgressIndicator());
     }
-    // FIX: Menampilkan error spesifik
+    // FIX: Menggunakan errorHadits
     if (controller.errorHadits.isNotEmpty) { 
       return Center(child: Text('Error: ${controller.errorHadits}'));
     }
@@ -211,7 +256,6 @@ class HomePage extends StatelessWidget {
     }
     
     return ListView.builder(
-      // FIX: Menambahkan physics
       physics: const ClampingScrollPhysics(), 
       padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
       itemCount: controller.allHadits.length,
@@ -221,13 +265,16 @@ class HomePage extends StatelessWidget {
           margin: const EdgeInsets.symmetric(vertical: 6),
           elevation: 1,
           child: ExpansionTile(
-            title: Text('${hadits.no}. ${hadits.judul}', style: const TextStyle(fontWeight: FontWeight.bold)),
+            // Menggunakan Judul yang dibuat di model
+            title: Text(hadits.judul, style: const TextStyle(fontWeight: FontWeight.bold)),
             children: [
               Padding(
                 padding: const EdgeInsets.all(16.0),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    Text('No. Hadis: ${hadits.no}', style: const TextStyle(fontWeight: FontWeight.w600)),
+                    const SizedBox(height: 10),
                     Text(hadits.arab, 
                       textAlign: TextAlign.right,
                       style: TextStyle(fontFamily: 'Arial', fontSize: 18, color: theme.primaryColor),

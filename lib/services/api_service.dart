@@ -6,20 +6,22 @@ import '../models/doa_model.dart';
 import '../models/dzikir_model.dart'; 
 import '../models/hadits_model.dart'; 
 
-// Base URL untuk Dzikir dan Hadits (muslim-api-three.vercel.app)
+// Host untuk Dzikir (muslim-api-three.vercel.app) - DIKEMBALIKAN KE API SEBELUMNYA
 const String _muslimApiHost = 'https://muslim-api-three.vercel.app'; 
-// Base URL untuk Doa (dikembalikan ke equran.id/api)
+// Host untuk Doa (equran.id/api) - DIKEMBALIKAN KE API SEBELUMNYA
 const String _doaApiHost = 'https://equran.id/api';
+
+// HOST BARU UNTUK HADIS
+const String _haditsApiHost = 'https://hadith-api-go.vercel.app/api/v1'; 
 
 class DoaApiService {
   
-  // Fungsi-fungsi Doa (Host: equran.id/api)
+  // FUNGSI DOA (TETAP SAMA SEPERTI SEBELUMNYA)
   Future<List<DoaModel>> getAllDoa() async {
     final response = await http.get(Uri.parse('$_doaApiHost/doa')); 
     
     if (response.statusCode == 200) {
       final Map<String, dynamic> responseBody = jsonDecode(response.body); 
-      // Asumsi: Doa API lama mengembalikan data di bawah key 'data'
       final List<dynamic> jsonList = responseBody['data'];
       return jsonList.map((json) => DoaModel.fromJson(json as Map<String, dynamic>)).toList();
     } else {
@@ -37,12 +39,18 @@ class DoaApiService {
     }
   }
 
-  // FUNGSI DZIKIR (Host: muslim-api-three.vercel.app)
+  // lib/services/api_service.dart (REVISI FUNGSI getAllDzikir - SEMENTARA UNTUK DEBUG)
+
+// ... (semua kode di atas tetap sama)
+
+  // FUNGSI DZIKIR (TETAP SAMA SEPERTI SEBELUMNYA)
   Future<List<DzikirModel>> getAllDzikir({String? type}) async {
+    // KITA HANYA MENGAMBIL SEMUA, DAN BERHARAP SERVER MENGIRIMKAN SEMUA TYPES
     String url = '$_muslimApiHost/v1/dzikir';
-    if (type != null && type.isNotEmpty) {
-      url += '?type=$type';
-    }
+    
+    // HAPUS QUERY TYPE SEMENTARA, AGAR TIDAK ADA MASALAH KETIDAKSESUAIAN
+    // Jika Anda ingin mengambil Dzikir Sholat saja, gunakan: url += '?type=sholat'; 
+    
     final response = await http.get(Uri.parse(url)); 
 
     if (response.statusCode == 200) {
@@ -54,16 +62,51 @@ class DoaApiService {
     }
   }
 
-  // FUNGSI HADITS (Host: muslim-api-three.vercel.app)
-  Future<List<HaditsModel>> getAllHadits() async {
-    final response = await http.get(Uri.parse('$_muslimApiHost/v1/hadits')); 
+// ... (sisa kode)
 
-    if (response.statusCode == 200) {
-      final Map<String, dynamic> responseBody = jsonDecode(response.body);
-      final List<dynamic> jsonList = responseBody['data'];
-      return jsonList.map((json) => HaditsModel.fromJson(json as Map<String, dynamic>)).toList();
-    } else {
-      throw Exception('Gagal memuat data hadits. Status: ${response.statusCode}');
+ 
+
+
+
+  // FUNGSI HADITS (Mengambil Hadis No. 1 dari SETIAP Kitab)
+  Future<List<HaditsModel>> getAllHadits() async {
+    // Daftar lengkap SLUG (nama kitab) Hadis yang Anda sediakan
+    const List<String> haditsSlugs = [
+      'abu-dawud', 'ahmad', 'bukhari', 'darimi', 
+      'ibnu-majah', 'malik', 'muslim', 'nasai', 'tirmidzi'
+    ];
+    
+    // Kita ambil Hadis Nomor 1 dari setiap kitab sebagai sampel
+    const int haditsNumber = 1; 
+
+    List<Future<HaditsModel>> fetchTasks = [];
+
+    for (String slug in haditsSlugs) {
+      final url = '$_haditsApiHost/hadis/$slug/$haditsNumber';
+      
+      fetchTasks.add(
+        http.get(Uri.parse(url)).then((response) {
+          if (response.statusCode == 200) {
+            // Jika sukses, parse data
+            return HaditsModel.fromJson(jsonDecode(response.body) as Map<String, dynamic>, slug);
+          } else {
+            // Jika gagal, log error dan return HaditsModel dummy agar Future.wait tidak terhenti
+            print('Gagal memuat Hadis $slug/$haditsNumber. Status: ${response.statusCode}');
+            // Return HaditsModel dummy dengan pesan error
+            return HaditsModel(
+              id: slug, 
+              arab: 'Gagal memuat teks Hadis', 
+              indo: 'Koneksi error atau hadis tidak ditemukan.', 
+              judul: 'ERROR: Kitab ${slug.toUpperCase()}', 
+              no: haditsNumber.toString(), 
+              slug: slug,
+            );
+          }
+        }),
+      );
     }
+    
+    // Jalankan semua permintaan secara paralel
+    return await Future.wait(fetchTasks);
   }
 }

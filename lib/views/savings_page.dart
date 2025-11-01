@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:timezone/data/latest.dart' as tzdata;
+import 'package:timezone/timezone.dart' as tz;
 import '../services/currency_service.dart';
 import '../services/location_service.dart';
 import '../services/hive_service.dart';
@@ -17,25 +18,38 @@ class SavingsPage extends StatefulWidget {
 class _SavingsPageState extends State<SavingsPage> {
   // Service instances
   final CurrencyService _currencyService = CurrencyService();
-  final LocationService _locationService = LocationService();
   final HiveService _hiveService = HiveService();
+  
+  // FIX: Mengubah LocationService menjadi static final (seperti yang didiskusikan sebelumnya)
+  static final LocationService _locationService = LocationService(); 
   
   // Input Controller
   final TextEditingController _amountController = TextEditingController(); 
   
   static const String _fromCurrency = 'IDR'; 
 
+  // --- DATA HARDCODE ZONA WAKTU ---
+  final List<Map<String, String>> _timeZones = const [
+    {'name': 'WIB (Jakarta)', 'zoneId': 'Asia/Jakarta'},
+    {'name': 'WITA (Makassar)', 'zoneId': 'Asia/Makassar'},
+    {'name': 'WIT (Jayapura)', 'zoneId': 'Asia/Jayapura'},
+    {'name': 'London (GMT/BST)', 'zoneId': 'Europe/London'},
+    {'name': 'Dubai (GST)', 'zoneId': 'Asia/Dubai'}, 
+  ];
+  String _selectedTimeZoneId = 'Asia/Jakarta'; // Default: WIB
+  // ---------------------------------
+
   // State Variables
-  String _targetInputCurrency = 'DINAR'; // Mata uang target untuk konversi INPUT AMOUNT
-  String _targetTotalSavingsCurrency = 'IDR'; // Mata uang target untuk TOTAL TABUNGAN
+  String _targetInputCurrency = ''; 
+  String _targetTotalSavingsCurrency = ''; 
   
   double _totalSavingsIDR = 0.0; 
-  double _convertedTotalSavings = 0.0; // Hasil konversi TOTAL TABUNGAN
-  double _convertedInputAmount = 0.0; // Hasil konversi INPUT AMOUNT (sementara)
+  double _convertedTotalSavings = 0.0; 
+  double _convertedInputAmount = 0.0; 
   
   String _statusMessage = 'Aplikasi siap konversi.';
   bool _isLoading = false;
-  String _currentTimeZone = 'Memuat Waktu...';
+  String _currentTime = 'N/A';
   
   late List<String> _conversionTargets; 
 
@@ -44,11 +58,13 @@ class _SavingsPageState extends State<SavingsPage> {
     super.initState();
     tzdata.initializeTimeZones();
     
-    // Daftar mata uang yang bisa dipilih sebagai target konversi
-    _conversionTargets = CurrencyService.availableCurrencies;
-    // Set default currency for Total Savings to IDR (default tampilan)
-    _targetTotalSavingsCurrency = 'IDR'; 
-    // Set default currency for Input Conversion
+    // Inisialisasi daftar mata uang target
+    _conversionTargets = CurrencyService.availableCurrencies
+        .where((c) => c != _fromCurrency)
+        .toList();
+        
+    // Set nilai default yang valid
+    _targetTotalSavingsCurrency = _conversionTargets.contains('DINAR') ? 'DINAR' : 'USD'; 
     _targetInputCurrency = _conversionTargets.contains('DINAR') ? 'DINAR' : 'USD'; 
 
     _loadInitialData();
@@ -64,32 +80,26 @@ class _SavingsPageState extends State<SavingsPage> {
     setState(() {
       _totalSavingsIDR = _hiveService.getTotalSavings();
     });
-    _fetchRatesAndLocalTime();
+    // Memuat kurs dan memperbarui waktu default
+    _fetchRates();
+    _updateTimeDisplay(_selectedTimeZoneId); // Tampilkan waktu WIB (default)
   }
 
-  Future<void> _fetchRatesAndLocalTime() async {
+  Future<void> _fetchRates() async {
     setState(() {
       _isLoading = true;
-      _statusMessage = 'Mengambil kurs & waktu lokal...';
+      _statusMessage = 'Mengambil kurs terbaru...';
     });
 
     try {
       await _currencyService.fetchRates();
-      
-      final position = await _locationService.getCurrentLocation();
-      final timeZoneId = await _locationService.getTimeZoneFromCoordinates(
-        position.latitude, 
-        position.longitude
-      );
-      
-      _currentTimeZone = _locationService.getLocalTime(timeZoneId);
       
       // Setelah kurs dimuat, hitung konversi awal
       _updateTotalSavingsConversion(_targetTotalSavingsCurrency);
       _updateInputConversion();
       
       setState(() {
-         _statusMessage = 'Kurs & waktu lokal berhasil dimuat.';
+         _statusMessage = 'Kurs berhasil dimuat.';
       });
       
     } on CurrencyServiceException catch (e) {
@@ -98,7 +108,7 @@ class _SavingsPageState extends State<SavingsPage> {
       });
     } catch (e) {
       setState(() {
-        _statusMessage = 'Error Lokasi/Umum: ${e.toString()}';
+        _statusMessage = 'Error Umum: ${e.toString()}';
       });
     } finally {
       setState(() {
@@ -107,7 +117,25 @@ class _SavingsPageState extends State<SavingsPage> {
     }
   }
 
-  // FUNGSI KHUSUS: Mengubah tampilan Total Tabungan
+  // FUNGSI BARU: Memperbarui tampilan waktu berdasarkan zona waktu yang dipilih
+  void _updateTimeDisplay(String zoneId) {
+    try {
+      final location = tz.getLocation(zoneId);
+      final now = tz.TZDateTime.now(location);
+      // Format waktu
+      final formatter = DateFormat('dd MMM yyyy, HH:mm:ss').format(now);
+
+      setState(() {
+        _currentTime = formatter;
+      });
+    } catch (e) {
+      setState(() {
+        _currentTime = 'Zona Waktu tidak valid';
+      });
+    }
+  }
+
+  // FUNGSI KONVERSI TOTAL TABUNGAN
   void _updateTotalSavingsConversion(String targetCurrency) {
      if (_currencyService.getRates().isEmpty) return;
 
@@ -135,7 +163,7 @@ class _SavingsPageState extends State<SavingsPage> {
      }
   }
 
-  // FUNGSI KHUSUS: Mengubah tampilan Konversi Input Amount
+  // FUNGSI KONVERSI INPUT AMOUNT
   void _updateInputConversion() {
     if (_currencyService.getRates().isEmpty) {
       setState(() {
@@ -147,7 +175,6 @@ class _SavingsPageState extends State<SavingsPage> {
     
     double inputAmount;
     try {
-      // Ambil nilai dari controller, default 0.0 jika kosong
       inputAmount = double.parse(_amountController.text.isEmpty ? '0.0' : _amountController.text);
     } catch (e) {
       setState(() {
@@ -253,7 +280,7 @@ class _SavingsPageState extends State<SavingsPage> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 
-                // --- KARTU TOTAL TABUNGAN (Dengan Dropdown Sendiri) ---
+                // --- KARTU TOTAL TABUNGAN (Dikonversi) ---
                 Card(
                   elevation: 4,
                   color: theme.primaryColor.withOpacity(0.9),
@@ -300,7 +327,7 @@ class _SavingsPageState extends State<SavingsPage> {
                         ),
                         const SizedBox(height: 5),
                         Text(
-                          'Total dalam Rupiah: ${_formatCurrencyResult(_totalSavingsIDR, 'IDR')}',
+                          'Total Asli: ${_formatCurrencyResult(_totalSavingsIDR, 'IDR')}',
                           style: const TextStyle(fontSize: 12, color: Colors.white54),
                         ),
                       ],
@@ -310,17 +337,51 @@ class _SavingsPageState extends State<SavingsPage> {
                 
                 const SizedBox(height: 20),
                 
-                // 1. KARTU WAKTU LOKAL
+                // 1. KARTU PEMILIH WAKTU
                 Card(
                   elevation: 2,
-                  color: theme.primaryColor.withOpacity(0.1),
-                  child: ListTile(
-                    leading: Icon(Icons.access_time_filled, color: theme.primaryColor),
-                    title: const Text('Waktu Lokal Transaksi'),
-                    subtitle: Text(_currentTimeZone),
-                    trailing: IconButton(
-                      icon: const Icon(Icons.refresh),
-                      onPressed: _fetchRatesAndLocalTime,
+                  color: theme.colorScheme.surface, // Menggunakan Surface Color yang lebih terang untuk background kartu
+                  child: Padding(
+                    padding: const EdgeInsets.all(12.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            const Text('Zona Waktu Transaksi', style: TextStyle(fontWeight: FontWeight.bold)),
+                            
+                            // DROPDOWN PEMILIH ZONA WAKTU
+                            DropdownButton<String>(
+                              value: _selectedTimeZoneId,
+                              items: _timeZones.map((zone) {
+                                return DropdownMenuItem<String>(
+                                  value: zone['zoneId'],
+                                  child: Text(zone['name']!),
+                                );
+                              }).toList(),
+                              onChanged: (String? newValue) {
+                                if (newValue != null) {
+                                  setState(() {
+                                    _selectedTimeZoneId = newValue;
+                                    _updateTimeDisplay(newValue);
+                                  });
+                                }
+                              },
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 5),
+                        // HASIL WAKTU YANG DIBUAT JELAS
+                        Text(
+                          _currentTime, 
+                          style: TextStyle(
+                            fontSize: 16, 
+                            fontWeight: FontWeight.w600, 
+                            color: theme.primaryColor // Warna utama agar kontras
+                          )
+                        ),
+                      ],
                     ),
                   ),
                 ),
@@ -379,7 +440,8 @@ class _SavingsPageState extends State<SavingsPage> {
                 // 4. HASIL KONVERSI INPUT AMOUNT (Khusus Hasil Input)
                 Card(
                   elevation: 4,
-                  color: theme.colorScheme.secondary.withOpacity(0.8),
+                  // Menggunakan warna aksen sekunder untuk kontras
+                  color: theme.colorScheme.secondary.withOpacity(0.8), 
                   child: Padding(
                     padding: const EdgeInsets.all(20.0),
                     child: Column(

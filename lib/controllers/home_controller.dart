@@ -9,44 +9,54 @@ import '../models/hadits_model.dart';
 class HomeController extends ChangeNotifier {
   final DoaApiService _doaApiService = DoaApiService(); 
   
-  // Data untuk Doa
+  // --- DATA LISTS ---
   List<DoaModel> _allDoa = [];
   List<DoaModel> _filteredDoa = [];
-  
-  // Data untuk Dzikir
   List<DzikirModel> _allDzikir = [];
-  
-  // Data untuk Hadis
   List<HaditsModel> _allHadits = [];
 
+  // --- STATE LISTS ---
+final List<String> _dzikirTypes = ['pagi', 'sore', 'setelah-sholat'];
+  // --- LOADING STATES ---
   bool _isLoadingDoa = true;
   bool _isLoadingDzikir = true;
   bool _isLoadingHadits = true;
   
-  // Variabel error sekarang menyimpan pesan spesifik per jenis konten
+  // --- ERROR STATES ---
   String _errorDoa = '';
   String _errorDzikir = '';
   String _errorHadits = '';
 
+  // =======================================================
+  // GETTERS
+  // =======================================================
   List<DoaModel> get filteredDoa => _filteredDoa;
   List<DzikirModel> get allDzikir => _allDzikir;
   List<HaditsModel> get allHadits => _allHadits;
+
+  List<String> get dzikirTypes => _dzikirTypes; 
 
   bool get isLoadingDoa => _isLoadingDoa;
   bool get isLoadingDzikir => _isLoadingDzikir;
   bool get isLoadingHadits => _isLoadingHadits;
   
-  // Getter Error yang baru
   String get errorDoa => _errorDoa;
   String get errorDzikir => _errorDzikir;
   String get errorHadits => _errorHadits;
 
+  // =======================================================
+  // CONSTRUCTOR & INITIALIZATION
+  // =======================================================
   HomeController() {
     fetchAllContent();
   }
   
+  // =======================================================
+  // DATA FETCHING LOGIC
+  // =======================================================
+  
+  // Memuat semua data secara paralel saat controller dibuat
   Future<void> fetchAllContent() async {
-    // Reset semua error sebelum fetching baru
     _errorDoa = _errorDzikir = _errorHadits = ''; 
     await Future.wait([
       fetchDoaData(),
@@ -63,7 +73,7 @@ class HomeController extends ChangeNotifier {
       _allDoa = await _doaApiService.getAllDoa();
       _filteredDoa = _allDoa;
     } catch (e) {
-      _errorDoa = e.toString().replaceFirst('Exception: ', 'Error Koneksi: ');
+      _errorDoa = e.toString().replaceFirst('Exception: ', 'Error Doa: ');
     } finally {
       _isLoadingDoa = false;
       notifyListeners();
@@ -77,7 +87,7 @@ class HomeController extends ChangeNotifier {
     try {
       _allDzikir = await _doaApiService.getAllDzikir(); 
     } catch (e) {
-      _errorDzikir = e.toString().replaceFirst('Exception: ', 'Error Koneksi: ');
+      _errorDzikir = e.toString().replaceFirst('Exception: ', 'Error Dzikir: ');
     } finally {
       _isLoadingDzikir = false;
       notifyListeners();
@@ -91,19 +101,29 @@ class HomeController extends ChangeNotifier {
     try {
       _allHadits = await _doaApiService.getAllHadits(); 
     } catch (e) {
-      _errorHadits = e.toString().replaceFirst('Exception: ', 'Error Koneksi: ');
+      _errorHadits = e.toString().replaceFirst('Exception: ', 'Error Hadis: ');
     } finally {
       _isLoadingHadits = false;
       notifyListeners();
     }
   }
 
+  // =======================================================
+  // FILTERING LOGIC
+  // =======================================================
+
+  // Fungsi: Filter Dzikir berdasarkan Type (Dipanggil oleh HomePage)
+  List<DzikirModel> getDzikirByType(String type) {
+    // Memastikan filtering case-insensitive
+    return _allDzikir.where((d) => d.type.toLowerCase() == type.toLowerCase()).toList();
+  }
 
   void searchDoa(String query) {
     if (query.isEmpty) {
       _filteredDoa = _allDoa;
     } else {
       final lowerQuery = query.toLowerCase();
+      // Filter berdasarkan nama dan terjemahan (idn)
       _filteredDoa = _allDoa.where((doa) {
         return doa.nama.toLowerCase().contains(lowerQuery) ||
                doa.idn.toLowerCase().contains(lowerQuery); 
