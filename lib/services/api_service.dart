@@ -70,43 +70,49 @@ class DoaApiService {
 
   // FUNGSI HADITS (Mengambil Hadis No. 1 dari SETIAP Kitab)
   Future<List<HaditsModel>> getAllHadits() async {
-    // Daftar lengkap SLUG (nama kitab) Hadis yang Anda sediakan
+    // Daftar lengkap SLUG (nama kitab) Hadis
     const List<String> haditsSlugs = [
       'abu-dawud', 'ahmad', 'bukhari', 'darimi', 
       'ibnu-majah', 'malik', 'muslim', 'nasai', 'tirmidzi'
     ];
     
-    // Kita ambil Hadis Nomor 1 dari setiap kitab sebagai sampel
-    const int haditsNumber = 1; 
+    // JUMLAH HADIS YANG DIAMBIL DARI SETIAP KITAB (DITINGKATKAN menjadi 15)
+    const int haditsPerKitab = 99; 
 
     List<Future<HaditsModel>> fetchTasks = [];
 
     for (String slug in haditsSlugs) {
-      final url = '$_haditsApiHost/hadis/$slug/$haditsNumber';
-      
-      fetchTasks.add(
-        http.get(Uri.parse(url)).then((response) {
-          if (response.statusCode == 200) {
-            // Jika sukses, parse data
-            return HaditsModel.fromJson(jsonDecode(response.body) as Map<String, dynamic>, slug);
-          } else {
-            // Jika gagal, log error dan return HaditsModel dummy agar Future.wait tidak terhenti
-            print('Gagal memuat Hadis $slug/$haditsNumber. Status: ${response.statusCode}');
-            // Return HaditsModel dummy dengan pesan error
-            return HaditsModel(
-              id: slug, 
-              arab: 'Gagal memuat teks Hadis', 
-              indo: 'Koneksi error atau hadis tidak ditemukan.', 
-              judul: 'ERROR: Kitab ${slug.toUpperCase()}', 
-              no: haditsNumber.toString(), 
-              slug: slug,
-            );
-          }
-        }),
-      );
+      for (int number = 1; number <= haditsPerKitab; number++) { 
+        final url = '$_haditsApiHost/hadis/$slug/$number';
+        
+        fetchTasks.add(
+          http.get(Uri.parse(url)).then((response) {
+            if (response.statusCode == 200) {
+              return HaditsModel.fromJson(jsonDecode(response.body) as Map<String, dynamic>, slug);
+            } else {
+              // Jika gagal, return HaditsModel dummy untuk memudahkan pemfilteran
+              return HaditsModel(
+                id: '$slug-$number', 
+                arab: 'Gagal memuat Hadis $number', 
+                indo: 'Koneksi error atau hadis tidak ditemukan.', 
+                judul: 'ERROR: ${slug.toUpperCase()} No. $number', 
+                no: number.toString(), 
+                slug: slug,
+              );
+            }
+          }),
+        );
+      }
     }
     
     // Jalankan semua permintaan secara paralel
-    return await Future.wait(fetchTasks);
+    final results = await Future.wait(fetchTasks);
+    // Filter Hadis yang gagal (yang memiliki judul 'ERROR')
+    return results.where((h) => !h.judul.startsWith('ERROR')).toList();
   }
 }
+    
+//     // Jalankan semua permintaan secara paralel
+//     return await Future.wait(fetchTasks);
+//   }
+// }

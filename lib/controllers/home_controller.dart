@@ -15,6 +15,7 @@ class HomeController extends ChangeNotifier {
   List<DoaModel> _filteredDoa = [];
   List<DzikirModel> _allDzikir = [];
   List<HaditsModel> _allHadits = [];
+  List<HaditsModel> _filteredHadits = []; // DATA BARU: Data Hadis yang difilter
 
   // --- STATE LISTS ---
 final List<String> _dzikirTypes = ['pagi', 'sore'];
@@ -34,6 +35,7 @@ final List<String> _dzikirTypes = ['pagi', 'sore'];
   List<DoaModel> get filteredDoa => _filteredDoa;
   List<DzikirModel> get allDzikir => _allDzikir;
   List<HaditsModel> get allHadits => _allHadits;
+  List<HaditsModel> get filteredHadits => _filteredHadits; // Menggunakan filtered list
 
   List<String> get dzikirTypes => _dzikirTypes; 
 
@@ -100,7 +102,9 @@ final List<String> _dzikirTypes = ['pagi', 'sore'];
     notifyListeners();
 
     try {
-      _allHadits = await _doaApiService.getAllHadits(); 
+      final fetchedHadits = await _doaApiService.getAllHadits(); 
+      _allHadits = fetchedHadits; // Simpan data asli (data lengkap)
+      _filteredHadits = fetchedHadits; // Inisialisasi tampilan dengan semua hadis
     } catch (e) {
       _errorHadits = e.toString().replaceFirst('Exception: ', 'Error Hadis: ');
     } finally {
@@ -137,17 +141,30 @@ final List<String> _dzikirTypes = ['pagi', 'sore'];
     return _allDzikir.where((d) => d.type.toLowerCase() == type.toLowerCase()).toList();
   }
 
-  void searchDoa(String query) {
-    if (query.isEmpty) {
-      _filteredDoa = _allDoa;
-    } else {
-      final lowerQuery = query.toLowerCase();
-      // Filter berdasarkan nama dan terjemahan (idn)
-      _filteredDoa = _allDoa.where((doa) {
-        return doa.nama.toLowerCase().contains(lowerQuery) ||
-               doa.idn.toLowerCase().contains(lowerQuery); 
-      }).toList();
-    }
+    void searchContent(String query) {
+    final lowerQuery = query.toLowerCase();
+
+    // 🔹 1. Logika pencarian Doa
+    _filteredDoa = _allDoa.where((doa) {
+      return doa.nama.toLowerCase().contains(lowerQuery) ||
+             doa.idn.toLowerCase().contains(lowerQuery);
+    }).toList();
+
+    // 🔹 2. Logika pencarian Hadis
+    _filteredHadits = _allHadits.where((hadits) {
+      final judul = hadits.judul?.toLowerCase() ?? '';
+      final indo = hadits.indo?.toLowerCase() ?? '';
+      final arab = hadits.arab?.toLowerCase() ?? '';
+      final slug = hadits.slug?.toLowerCase() ?? '';
+      final no = hadits.no?.toString() ?? ''; // ubah jadi string aman
+
+      return judul.contains(lowerQuery) ||
+             indo.contains(lowerQuery) ||
+             arab.contains(lowerQuery) ||
+             slug.contains(lowerQuery) ||
+             no.contains(lowerQuery);
+    }).toList();
+
     notifyListeners();
   }
 }

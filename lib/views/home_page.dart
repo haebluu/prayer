@@ -163,9 +163,9 @@ class HomePage extends StatelessWidget {
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16.0),
                   child: TextField(
-                    onChanged: (value) => homeController.searchDoa(value), 
+                    onChanged: (value) => homeController.searchContent(value), 
                     decoration: InputDecoration(
-                      hintText: 'Cari doa, dzikir, atau hadis...',
+                      hintText: 'Cari doa atau hadis...',
                       fillColor: Colors.white,
                       filled: true,
                       prefixIcon: const Icon(Icons.search, color: Colors.grey),
@@ -354,9 +354,9 @@ class HomePage extends StatelessWidget {
     return ListView.builder(
       physics: const ClampingScrollPhysics(), 
       padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-      itemCount: controller.allHadits.length,
+      itemCount: controller.filteredHadits.length,
       itemBuilder: (context, index) {
-        final hadits = controller.allHadits[index];
+        final hadits = controller.filteredHadits[index];
         return Card(
           margin: const EdgeInsets.symmetric(vertical: 6),
           elevation: 1,
