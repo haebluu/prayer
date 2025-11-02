@@ -36,36 +36,52 @@ class UserController extends ChangeNotifier {
   }
 
 
+  // lib/controllers/user_controller.dart (Revisi Fungsi Login)
+
+// ... (kode di atas)
+
   Future<String?> login(String email, String password) async {
     _isLoading = true;
     notifyListeners();
 
-    final user = _hiveService.getUserByEmail(email); 
+    String? errorMessage; // Variabel lokal untuk error
 
-    if (user == null || !EncryptionService.verifyPassword(password, user.passwordHash)) {
-      _isLoading = false;
-      notifyListeners();
-      return 'Email atau password salah.';
+    try {
+        final user = _hiveService.getUserByEmail(email); 
+
+        // 1. Cek User dan Verifikasi Password
+        if (user == null || !EncryptionService.verifyPassword(password, user.passwordHash)) {
+          return 'Email atau password salah.';
+        }
+
+        // 2. Login Sukses
+        await SessionService.createSession(user.uid);
+
+        final updatedUser = UserModel(
+          uid: user.uid,
+          email: user.email,
+          name: user.name,
+          passwordHash: user.passwordHash,
+          lastLogin: DateTime.now(),
+          doaOpened: user.doaOpened,
+        );
+
+        await _hiveService.updateUser(updatedUser);
+        _currentUser = updatedUser;
+        
+    } catch (e) {
+        // Tangkap error tak terduga (misal error I/O Hive)
+        errorMessage = 'Terjadi kesalahan sistem: $e';
+    } finally {
+        // Pastikan loading selalu mati, meskipun ada error
+        _isLoading = false;
+        notifyListeners();
     }
-
-    await SessionService.createSession(user.uid);
-
-    final updatedUser = UserModel(
-      uid: user.uid,
-      email: user.email,
-      name: user.name,
-      passwordHash: user.passwordHash,
-      lastLogin: DateTime.now(),
-      doaOpened: user.doaOpened,
-    );
-
-    await _hiveService.updateUser(updatedUser); 
-
-    _currentUser = updatedUser;
-    _isLoading = false;
-    notifyListeners();
-    return null;
+    
+    return errorMessage; // Mengembalikan null jika sukses
   }
+
+// ... (sisa kode tetap sama)
 
   Future<String?> register(String name, String email, String password) async {
     _isLoading = true;

@@ -10,7 +10,7 @@ class ProfilePage extends StatelessWidget {
   final String hardcodeNim = '124230083'; 
   final String hardcodeKelas = 'SI-A';
   final String hardcodeKesan = 'Mata kuliah ini sangat bermanfaat untuk memahami pengembangan aplikasi mobile menggunakan Flutter';
-  final String hardcodeSaran = 'Mungkin bisa ditambahkan lebih banyak contoh praktis dan studi kasus yang relevan dengan dunia industri.';
+  final String hardcodeSaran = 'Deadline yang lebih longgar agar dapat mengerjakan projek dengan lebih optimal.';
 
 
   @override

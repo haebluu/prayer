@@ -9,7 +9,10 @@ class DetailDoaPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(doa.nama),
+        title: Text(
+          doa.nama,
+          style: TextStyle(color: Theme.of(context).colorScheme.onPrimary),
+          ),
         backgroundColor: Theme.of(context).primaryColor,
       ),
       body: SingleChildScrollView(

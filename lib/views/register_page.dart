@@ -18,91 +18,114 @@ class _RegisterPageState extends State<RegisterPage> {
   @override
   Widget build(BuildContext context) {
     final userController = context.watch<UserController>();
+    final theme = Theme.of(context);
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Daftar Akun"),
+        title: Text("Daftar Akun", style: TextStyle(color: theme.colorScheme.onPrimary)),
+        backgroundColor: theme.primaryColor,
         centerTitle: true,
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              TextFormField(
-                controller: _nameController,
-                decoration: const InputDecoration(labelText: "Nama"),
-                validator: (value) =>
-                    value!.isEmpty ? 'Nama tidak boleh kosong' : null,
+      body: Center( // Center content on screen
+        child: SingleChildScrollView( // Allow scrolling if keyboard/content overflows
+          padding: const EdgeInsets.all(20),
+          child: Form(
+            key: _formKey,
+            child: Card(
+              elevation: 8,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
               ),
-              const SizedBox(height: 16),
-              
-              TextFormField(
-                controller: _emailController,
-                decoration: const InputDecoration(labelText: "Email"),
-                keyboardType: TextInputType.emailAddress,
-                validator: (value) =>
-                    value!.isEmpty ? 'Email tidak boleh kosong' : null,
-              ),
-              const SizedBox(height: 16),
-              TextFormField(
-                controller: _passwordController,
-                decoration: const InputDecoration(labelText: "Password"),
-                obscureText: true,
-                validator: (value) =>
-                    value!.isEmpty ? 'Password tidak boleh kosong' : null,
-              ),
-              const SizedBox(height: 24),
-              
-              ElevatedButton(
-                onPressed: userController.isLoading
-                    ? null
-                    : () async {
-                        if (_formKey.currentState!.validate()) {
-                          final userControllerRead = context.read<UserController>(); 
-                          
-                          final result = await userControllerRead.register(
-                            _nameController.text.trim(),
-                            _emailController.text.trim(),
-                            _passwordController.text.trim(),
-                          );
-                          
-                          if (result == null) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                  content: Text('Registrasi berhasil! Silakan login.')),
-                            );
-                            
-                            if (mounted) {
-                              Navigator.pop(context); 
-                            }
-                          } else {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text(result)),
-                            );
-                          }
-                        }
+              child: Padding(
+                padding: const EdgeInsets.all(24.0), // Padding di dalam Card
+                child: Column(
+                  mainAxisSize: MainAxisSize.min, // Biarkan Column sekecil mungkin
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    // 1. Input Nama
+                    TextFormField(
+                      controller: _nameController,
+                      decoration: const InputDecoration(labelText: "Nama"),
+                      validator: (value) =>
+                          value!.isEmpty ? 'Nama tidak boleh kosong' : null,
+                    ),
+                    const SizedBox(height: 16),
+                    
+                    // 2. Input Email
+                    TextFormField(
+                      controller: _emailController,
+                      decoration: const InputDecoration(labelText: "Email"),
+                      keyboardType: TextInputType.emailAddress,
+                      validator: (value) =>
+                          value!.isEmpty ? 'Email tidak boleh kosong' : null,
+                    ),
+                    const SizedBox(height: 16),
+                    
+                    // 3. Input Password
+                    TextFormField(
+                      controller: _passwordController,
+                      decoration: const InputDecoration(labelText: "Password"),
+                      obscureText: true,
+                      validator: (value) =>
+                          value!.isEmpty ? 'Password tidak boleh kosong' : null,
+                    ),
+                    const SizedBox(height: 24),
+                    
+                    // Tombol Daftar
+                    ElevatedButton(
+                      onPressed: userController.isLoading
+                          ? null
+                          : () async {
+                              if (_formKey.currentState!.validate()) {
+                                final userControllerRead = context.read<UserController>(); 
+                                
+                                final result = await userControllerRead.register(
+                                  _nameController.text.trim(),
+                                  _emailController.text.trim(),
+                                  _passwordController.text.trim(),
+                                );
+                                
+                                if (result == null) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                        content: Text('Registrasi berhasil! Silakan login.')),
+                                  );
+                                  
+                                  if (mounted) {
+                                    // Navigasi yang benar: Kembali ke LoginPage
+                                    Navigator.pop(context); 
+                                  }
+                                } else {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(content: Text(result)),
+                                  );
+                                }
+                              }
+                            },
+                      // Menggunakan warna tema Anda
+                      style: ElevatedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 15),
+                        backgroundColor: theme.colorScheme.secondary, 
+                        foregroundColor: theme.colorScheme.onPrimary,
+                      ),
+                      child: userController.isLoading
+                          ? const CircularProgressIndicator(color: Colors.white)
+                          : const Text("Daftar", style: TextStyle(fontWeight: FontWeight.bold)),
+                    ),
+                    
+                    const SizedBox(height: 16),
+                    
+                    // Link ke Login
+                    TextButton(
+                      onPressed: () {
+                        Navigator.pop(context); // Kembali ke LoginPage
                       },
-                style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 15),
-                  backgroundColor: Theme.of(context).colorScheme.secondary, 
-                  foregroundColor: Colors.black,
+                      child: const Text("Sudah punya akun? Masuk di sini"),
+                    )
+                  ],
                 ),
-                child: userController.isLoading
-                    ? const CircularProgressIndicator(color: Colors.white)
-                    : const Text("Daftar"),
               ),
-              
-              const SizedBox(height: 16),
-              TextButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                },
-                child: const Text("Sudah punya akun? Masuk di sini"),
-              )
-            ],
+            ),
           ),
         ),
       ),

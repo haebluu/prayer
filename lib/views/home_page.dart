@@ -1,17 +1,14 @@
-// lib/views/home_page.dart
-
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:flutter_local_notifications/flutter_local_notifications.dart'; // Wajib untuk cancelAll
+import 'package:flutter_local_notifications/flutter_local_notifications.dart'; 
 import '../controllers/home_controller.dart'; 
 import '../controllers/user_controller.dart';
-import '../services/notification_service.dart'; // Service Notifikasi
+import '../services/notification_service.dart'; 
 import 'detail_doa_page.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
 
-  // Fungsi untuk menampilkan dialog status notifikasi
   void _showNotificationStatusDialog(BuildContext context) {
     showDialog(
       context: context,
@@ -19,7 +16,6 @@ class HomePage extends StatelessWidget {
         return AlertDialog(
           title: const Text("Status Pengingat Dzikir"),
           content: FutureBuilder<List<PendingNotificationRequest>>(
-            // Menggunakan instance dari service
             future: NotificationService.flutterLocalNotificationsPlugin.pendingNotificationRequests(),
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
@@ -38,7 +34,6 @@ class HomePage extends StatelessWidget {
                 return const Text("Pengingat saat ini DINONAKTIFKAN.");
               }
               
-              // Tampilkan daftar notifikasi yang dijadwalkan
               return Column(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -84,29 +79,25 @@ class HomePage extends StatelessWidget {
     final userName = userController.currentUser?.name ?? 'Pengguna'; 
     final theme = Theme.of(context);
     
-    // Menggunakan DefaultTabController untuk manajemen Tab Menu (Doa, Dzikir, Hadis)
     return DefaultTabController(
       length: 3, 
       child: Column( 
         children: [
-          // 1. App Bar
           AppBar(
             title: const Text('Doa & Dzikir', style: TextStyle(color: Colors.white)),
             backgroundColor: theme.primaryColor,
             elevation: 0,
             automaticallyImplyLeading: false, 
             actions: [ 
-              // Tombol untuk Mengaktifkan Notifikasi
               IconButton(
                 icon: const Icon(Icons.notifications_active, color: Colors.white),
                 tooltip: 'Aktifkan Pengingat Dzikir',
                 onPressed: () async {
-                  // 1. Batalkan notifikasi lama
                   await NotificationService.cancelAllNotifications(); 
 
                   // 2. Jadwalkan yang baru
                   await NotificationService.scheduleDailyNotification(
-                    id: 10, // ID unik
+                    id: 10,
                     hour: 5,
                     minute: 30,
                     title: 'Waktunya Dzikir Pagi',
@@ -114,7 +105,7 @@ class HomePage extends StatelessWidget {
                   );
 
                   await NotificationService.scheduleDailyNotification(
-                    id: 20, // ID unik
+                    id: 20,
                     hour: 17,
                     minute: 30,
                     title: 'Waktunya Dzikir Sore',
@@ -126,7 +117,6 @@ class HomePage extends StatelessWidget {
                   );
                 },
               ),
-              // Tombol untuk Melihat Status Notifikasi (Info)
               IconButton(
                 icon: const Icon(Icons.info_outline, color: Colors.white),
                 tooltip: 'Cek Status Pengingat',
@@ -135,14 +125,12 @@ class HomePage extends StatelessWidget {
             ],
           ),
           
-          // 2. HERO HEADER (Judul & Search Bar)
           Container(
             padding: const EdgeInsets.only(bottom: 10),
             color: theme.primaryColor,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch, 
               children: [
-                // Judul Dinamis (Assalamualaikum, [Nama])
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
                   child: Row(
@@ -159,7 +147,6 @@ class HomePage extends StatelessWidget {
                   ),
                 ),
                 
-                // Search Bar
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16.0),
                   child: TextField(
@@ -181,7 +168,6 @@ class HomePage extends StatelessWidget {
             ),
           ),
           
-          // 3. TAB BAR (Menu Kategori)
           TabBar(
             tabs: const [
               Tab(text: 'Doa'),
@@ -196,7 +182,6 @@ class HomePage extends StatelessWidget {
             overlayColor: MaterialStatePropertyAll(theme.scaffoldBackgroundColor),
           ),
 
-          // 4. TAB BAR VIEW (Konten yang dapat di-scroll)
           Expanded(
             child: TabBarView(
               children: [
@@ -211,10 +196,6 @@ class HomePage extends StatelessWidget {
     );
   }
 
-  // =========================================================
-  // WIDGET BUILDER UNTUK SETIAP TAB
-  // =========================================================
-
   Widget _buildDoaList(HomeController controller, ThemeData theme, BuildContext context) {
     if (controller.isLoadingDoa) {
       return const Center(child: CircularProgressIndicator());
@@ -227,7 +208,6 @@ class HomePage extends StatelessWidget {
     }
 
     return ListView.builder(
-      // FIX: Menambahkan physics untuk memperbaiki scrolling di TabBarView
       physics: const ClampingScrollPhysics(), 
       padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
       itemCount: controller.filteredDoa.length,
@@ -267,8 +247,6 @@ class HomePage extends StatelessWidget {
     if (controller.allDzikir.isEmpty) {
       return const Center(child: Text('Data Dzikir tidak ditemukan.'));
     }
-    
-    // Konversi type name untuk tampilan tab yang lebih rapi
     final Map<String, String> displayNameMap = {
       'pagi': 'Pagi', 
       'sore': 'Sore', 
@@ -281,7 +259,6 @@ class HomePage extends StatelessWidget {
       length: dzikirTypes.length,
       child: Column(
         children: [
-          // Tab Bar Internal
           Container(
             color: theme.scaffoldBackgroundColor,
             child: TabBar(
@@ -294,7 +271,6 @@ class HomePage extends StatelessWidget {
             ),
           ),
           
-          // Tab Bar View Internal
           Expanded(
             child: TabBarView(
               children: dzikirTypes.map((type) {

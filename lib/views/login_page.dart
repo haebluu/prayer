@@ -18,68 +18,90 @@ class _LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
     final userController = context.watch<UserController>();
+    final theme = Theme.of(context);
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Login"),
+        // Hapus const pada Text
+        title: Text("Login", style: TextStyle(color: theme.colorScheme.onPrimary)), // FIX DI SINI
+        backgroundColor: theme.primaryColor,
         centerTitle: true,
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              TextFormField(
-                controller: _emailController,
-                decoration: const InputDecoration(labelText: "Email"),
-                validator: (value) =>
-                    value!.isEmpty ? 'Email tidak boleh kosong' : null,
+      body: Center( 
+        child: SingleChildScrollView( 
+          padding: const EdgeInsets.all(20),
+          child: Form(
+            key: _formKey,
+            child: Card(
+              elevation: 8,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
               ),
-              const SizedBox(height: 16),
-              TextFormField(
-                controller: _passwordController,
-                decoration: const InputDecoration(labelText: "Password"),
-                obscureText: true,
-                validator: (value) =>
-                    value!.isEmpty ? 'Password tidak boleh kosong' : null,
-              ),
-              const SizedBox(height: 24),
-              ElevatedButton(
-                onPressed: userController.isLoading
-                    ? null
-                    : () async {
-                      if (_formKey.currentState!.validate()) {
-                      final userController = context.read<UserController>(); // Ganti watch ke read di sini
-                      final result = await userController.login(
-                        _emailController.text.trim(),
-                        _passwordController.text.trim(),
-                      );
-                      if (result == null) {
-                      } else {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text(result)),
+              child: Padding(
+                padding: const EdgeInsets.all(24.0),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    TextFormField(
+                      controller: _emailController,
+                      decoration: const InputDecoration(labelText: "Email"),
+                      keyboardType: TextInputType.emailAddress,
+                      validator: (value) =>
+                          value!.isEmpty ? 'Email tidak boleh kosong' : null,
+                    ),
+                    const SizedBox(height: 16),
+                    TextFormField(
+                      controller: _passwordController,
+                      decoration: const InputDecoration(labelText: "Password"),
+                      obscureText: true,
+                      validator: (value) =>
+                          value!.isEmpty ? 'Password tidak boleh kosong' : null,
+                    ),
+                    const SizedBox(height: 24),
+                    ElevatedButton(
+                      onPressed: userController.isLoading
+                          ? null
+                          : () async {
+                              if (_formKey.currentState!.validate()) {
+                                final userController = context.read<UserController>();
+                                final result = await userController.login(
+                                  _emailController.text.trim(),
+                                  _passwordController.text.trim(),
+                                );
+                                if (result == null) {
+                                  // Navigasi sukses diurus oleh RootPage
+                                } else {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(content: Text(result)),
+                                  );
+                                }
+                              }
+                            },
+                      // Menggunakan warna tema Anda
+                      style: ElevatedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 15),
+                        backgroundColor: theme.colorScheme.secondary, 
+                        foregroundColor: theme.colorScheme.onPrimary,
+                      ),
+                      child: userController.isLoading
+                          ? const CircularProgressIndicator(color: Colors.white)
+                          : const Text("Login", style: TextStyle(fontWeight: FontWeight.bold)),
+                    ),
+                    const SizedBox(height: 16),
+                    TextButton(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (_) => const RegisterPage()),
                         );
-                      }
-                      }
-                    },
-                child: userController.isLoading
-                    ? const CircularProgressIndicator(color: Colors.white)
-                    : const Text("Login"),
+                      },
+                      child: const Text("Belum punya akun? Daftar di sini"),
+                    )
+                  ],
+                ),
               ),
-              const SizedBox(height: 16),
-              TextButton(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (_) => const RegisterPage()),
-                  );
-                },
-                child: const Text("Belum punya akun? Daftar di sini"),
-              )
-            ],
+            ),
           ),
         ),
       ),
