@@ -11,17 +11,14 @@ class CurrencyServiceException implements Exception {
 }
 
 class CurrencyService {
-  // REVISI: Menggunakan API Key dan URL V6 baru
   static const String _apiKey = '222dabd382b071dcb3531a5e';
   static const String _baseUrl = 'https://v6.exchangerate-api.com/v6/$_apiKey/latest/USD'; // Base USD
 
-  // FIX: Memberi nilai default Map kosong untuk mencegah LateInitializationError
   Map<String, double> _rates = {};
   
   DateTime? get lastFetch => _lastFetch; 
   DateTime? _lastFetch;
 
-  // REVISI: Daftar mata uang yang diperbarui (termasuk SAR, CAD, AUD, KRW, CNY)
   static const List<String> availableCurrencies = [
     'IDR', 
     'DINAR', 
@@ -46,7 +43,6 @@ class CurrencyService {
       if (response.statusCode == 200) {
         final body = jsonDecode(response.body);
         
-        // Menggunakan 'conversion_rates' dari API V6
         final Map<String, dynamic>? ratesJson = body['conversion_rates'] as Map<String, dynamic>?;
 
         if (ratesJson != null) {

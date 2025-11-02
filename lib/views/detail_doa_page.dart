@@ -19,18 +19,16 @@ class DetailDoaPage extends StatelessWidget {
           children: <Widget>[
 
             Text(
-              // Menampilkan NAMA (Judul Doa) di bagian paling atas
               doa.nama, 
               textAlign: TextAlign.center,
               style: TextStyle(
-                fontSize: 22, // Ukuran lebih besar karena ini judul utama
+                fontSize: 22, 
                 fontWeight: FontWeight.bold,
                 color: Theme.of(context).primaryColor,
               ),
             ),
             const Divider(height: 20),
 
-            // Teks Arab (key: ar)
             const Text('Teks Arab:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.black87)),
             const SizedBox(height: 15),
             Container(
@@ -45,13 +43,11 @@ class DetailDoaPage extends StatelessWidget {
               child: Text(
                 doa.ar,
                 textAlign: TextAlign.right,
-                // Gunakan Font yang mendukung Arab (misalnya Noto Sans Arabic jika Anda menambahkannya)
                 style: const TextStyle(fontSize: 32, height: 1.8, fontFamily: 'Arial'), 
               ),
             ),
             const SizedBox(height: 30),
             
-            // Teks Latin (key: tr)
             const Text('Bacaan Latin:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.black87)),
             const SizedBox(height: 8),
             Text(
@@ -60,7 +56,6 @@ class DetailDoaPage extends StatelessWidget {
             ),
             const SizedBox(height: 30),
 
-            // Terjemahan (key: idn)
             const Text('Terjemahan:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.black87)),
             const SizedBox(height: 8),
             Text(
@@ -69,7 +64,6 @@ class DetailDoaPage extends StatelessWidget {
             ),
             const Divider(height: 40),
 
-            // Sumber/Keterangan (key: tentang)
             const Text('Keterangan & Sumber:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.black54)),
             const SizedBox(height: 8),
             Text(

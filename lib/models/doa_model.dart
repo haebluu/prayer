@@ -1,11 +1,11 @@
 class DoaModel {
   final int id;
   final String grup;
-  final String nama; // Judul Doa
-  final String ar;   // Teks Arab
-  final String tr;   // Teks Latin (Transliterasi)
-  final String idn;  // Terjemahan Indonesia
-  final String tentang; // Sumber/Keterangan Doa
+  final String nama; 
+  final String ar;   
+  final String tr;   
+  final String idn;  
+  final String tentang; 
 
   DoaModel({
     required this.id,

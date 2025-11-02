@@ -1,4 +1,3 @@
-// lib/models/user_model.dart
 import 'package:hive/hive.dart';
 
 part 'user_model.g.dart';
@@ -6,7 +5,7 @@ part 'user_model.g.dart';
 @HiveType(typeId: 1)
 class UserModel {
   @HiveField(0)
-  final String uid; // Menggunakan UID
+  final String uid; 
   @HiveField(1)
   final String name;
   @HiveField(2)
@@ -14,9 +13,9 @@ class UserModel {
   @HiveField(3)
   final String passwordHash; 
   @HiveField(4)
-  final DateTime lastLogin; // DITAMBAH
+  final DateTime lastLogin; 
   @HiveField(5)
-  final int doaOpened; // DITAMBAH
+  final int doaOpened; 
 
   UserModel({
     required this.uid,
@@ -24,6 +23,6 @@ class UserModel {
     required this.email,
     required this.passwordHash,
     required this.lastLogin,
-    this.doaOpened = 0, // Default value
+    this.doaOpened = 0, 
   });
 }

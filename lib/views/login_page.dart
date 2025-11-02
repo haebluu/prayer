@@ -49,26 +49,21 @@ class _LoginPageState extends State<LoginPage> {
               ElevatedButton(
                 onPressed: userController.isLoading
                     ? null
-                    // Di dalam onPressed:
-// ...
-           : () async {
-            if (_formKey.currentState!.validate()) {
-             final userController = context.read<UserController>(); // Ganti watch ke read di sini
-             final result = await userController.login(
-              _emailController.text.trim(),
-              _passwordController.text.trim(),
-             );
-             if (result == null) {
-              // LOGIN BERHASIL. TIDAK PERLU NAVIGASI MANUAL.
-              // RootPage akan melihat userController.currentUser != null dan navigasi otomatis ke MainScreen.
-             } else {
-              ScaffoldMessenger.of(context).showSnackBar(
-               SnackBar(content: Text(result)),
-              );
-             }
-            }
-           },
-// ...
+                    : () async {
+                      if (_formKey.currentState!.validate()) {
+                      final userController = context.read<UserController>(); // Ganti watch ke read di sini
+                      final result = await userController.login(
+                        _emailController.text.trim(),
+                        _passwordController.text.trim(),
+                      );
+                      if (result == null) {
+                      } else {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text(result)),
+                        );
+                      }
+                      }
+                    },
                 child: userController.isLoading
                     ? const CircularProgressIndicator(color: Colors.white)
                     : const Text("Login"),

@@ -4,7 +4,6 @@ class SessionService {
   static late SharedPreferences _prefs;
   static const String _sessionKey = 'current_user_id';
 
-  // Panggil ini sekali di awal (biasanya di main)
   static Future<void> init() async {
     _prefs = await SharedPreferences.getInstance();
   }
@@ -21,7 +20,6 @@ class SessionService {
     await _prefs.remove(_sessionKey);
   }
 
-  // Opsional: untuk backward compatibility
   static String getUserId() {
     return _prefs.getString(_sessionKey) ?? '';
   }
