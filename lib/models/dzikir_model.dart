@@ -1,4 +1,3 @@
-// lib/models/dzikir_model.dart
 class DzikirModel {
   final String id;
   final String arab;

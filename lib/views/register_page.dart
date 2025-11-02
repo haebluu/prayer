@@ -17,7 +17,6 @@ class _RegisterPageState extends State<RegisterPage> {
 
   @override
   Widget build(BuildContext context) {
-    // Gunakan context.watch untuk mendengarkan state loading
     final userController = context.watch<UserController>();
 
     return Scaffold(
@@ -32,7 +31,6 @@ class _RegisterPageState extends State<RegisterPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // 1. Input Nama
               TextFormField(
                 controller: _nameController,
                 decoration: const InputDecoration(labelText: "Nama"),
@@ -41,7 +39,6 @@ class _RegisterPageState extends State<RegisterPage> {
               ),
               const SizedBox(height: 16),
               
-              // 2. Input Email
               TextFormField(
                 controller: _emailController,
                 decoration: const InputDecoration(labelText: "Email"),
@@ -50,8 +47,6 @@ class _RegisterPageState extends State<RegisterPage> {
                     value!.isEmpty ? 'Email tidak boleh kosong' : null,
               ),
               const SizedBox(height: 16),
-              
-              // 3. Input Password
               TextFormField(
                 controller: _passwordController,
                 decoration: const InputDecoration(labelText: "Password"),
@@ -61,13 +56,11 @@ class _RegisterPageState extends State<RegisterPage> {
               ),
               const SizedBox(height: 24),
               
-              // Tombol Daftar
               ElevatedButton(
                 onPressed: userController.isLoading
                     ? null
                     : () async {
                         if (_formKey.currentState!.validate()) {
-                          // Gunakan context.read untuk memanggil fungsi (action)
                           final userControllerRead = context.read<UserController>(); 
                           
                           final result = await userControllerRead.register(
@@ -77,18 +70,15 @@ class _RegisterPageState extends State<RegisterPage> {
                           );
                           
                           if (result == null) {
-                            // Pendaftaran Berhasil
                             ScaffoldMessenger.of(context).showSnackBar(
                               const SnackBar(
                                   content: Text('Registrasi berhasil! Silakan login.')),
                             );
                             
-                            // Navigasi yang benar: Kembali ke LoginPage
                             if (mounted) {
                               Navigator.pop(context); 
                             }
                           } else {
-                            // Pendaftaran Gagal
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(content: Text(result)),
                             );
@@ -105,11 +95,10 @@ class _RegisterPageState extends State<RegisterPage> {
                     : const Text("Daftar"),
               ),
               
-              // Link ke Login
               const SizedBox(height: 16),
               TextButton(
                 onPressed: () {
-                  Navigator.pop(context); // Kembali ke LoginPage
+                  Navigator.pop(context);
                 },
                 child: const Text("Sudah punya akun? Masuk di sini"),
               )

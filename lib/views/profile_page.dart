@@ -1,5 +1,3 @@
-// lib/views/profile_page.dart (REVISI AKHIR: Menggunakan CustomScrollView)
-
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../controllers/user_controller.dart';
@@ -8,13 +6,11 @@ import 'login_page.dart';
 class ProfilePage extends StatelessWidget {
   const ProfilePage({super.key});
 
-  // --- DATA HARCODE MAHASISWA ---
-  final String hardcodeNama = 'Nama Mahasiswa Anda'; 
-  final String hardcodeNim = '20230040XXX'; 
-  final String hardcodeKelas = 'SI-Pagi B';
-  final String hardcodeKesan = 'Aplikasi ini sangat membantu saya dalam mempraktikkan manajemen state dan code generation.';
-  final String hardcodeSaran = 'Perlu ditingkatkan fitur notifikasi dan manajemen database lokal menjadi lebih kompleks.';
-  // -----------------------------
+  final String hardcodeNama = 'Zahratun Nafiah'; 
+  final String hardcodeNim = '124230083'; 
+  final String hardcodeKelas = 'SI-A';
+  final String hardcodeKesan = 'Mata kuliah ini sangat bermanfaat untuk memahami pengembangan aplikasi mobile menggunakan Flutter';
+  final String hardcodeSaran = 'Mungkin bisa ditambahkan lebih banyak contoh praktis dan studi kasus yang relevan dengan dunia industri.';
 
 
   @override
@@ -22,7 +18,6 @@ class ProfilePage extends StatelessWidget {
     final userController = context.read<UserController>();
     final theme = Theme.of(context);
 
-    // Fungsi untuk Logout (termasuk navigasi)
     void _handleLogout() async {
       await userController.logout();
       
@@ -34,29 +29,21 @@ class ProfilePage extends StatelessWidget {
       }
     }
 
-
-    // Ganti Column luar dengan CustomScrollView untuk penanganan scroll dan AppBar yang lebih baik
     return CustomScrollView( 
       slivers: [
-        // 1. App Bar (menggunakan SliverAppBar)
         SliverAppBar(
           title: const Text('Profil Mahasiswa', style: TextStyle(color: Colors.white),),
           backgroundColor: theme.primaryColor,
-          // Penting: Agar App Bar ini tidak memiliki tombol 'back' karena berada di tab
-          automaticallyImplyLeading: false, 
-          pinned: true, // Agar App Bar tetap di atas (tidak ikut scroll)
+          automaticallyImplyLeading: false,
+          pinned: true,
         ),
 
-        // 2. Body (Dibungkus dalam SliverToBoxAdapter untuk konten non-sliver)
         SliverToBoxAdapter(
           child: Padding(
-            // Padding bawah tetap diperlukan untuk memastikan konten di bawah BottomNavBar terlihat saat scroll penuh
             padding: const EdgeInsets.only(left: 16.0, right: 16.0, top: 16.0, bottom: 80.0), 
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: <Widget>[
-                
-                // ============== BAGIAN FOTO & DATA DIRI HARCODE ==============
                 Container(
                   padding: const EdgeInsets.all(20),
                   decoration: BoxDecoration(
@@ -77,14 +64,12 @@ class ProfilePage extends StatelessWidget {
                       ),
                       const SizedBox(height: 15),
 
-                      // Nama Pengguna (Hardcode)
                       Text(
                         hardcodeNama,
                         style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: theme.primaryColor),
                       ),
                       const SizedBox(height: 5),
 
-                      // Detail Profil: NIM dan Kelas
                       _buildProfileDetail(
                         icon: Icons.badge,
                         title: 'NIM',
@@ -102,7 +87,6 @@ class ProfilePage extends StatelessWidget {
                 ),
                 
                 const SizedBox(height: 30),
-                // ============== KESAN & SARAN HARCODE ==============
                 
                 const Text(
                   'Kesan & Saran Projek',
@@ -124,7 +108,6 @@ class ProfilePage extends StatelessWidget {
                 
                 const SizedBox(height: 30),
 
-                // ============== MENU LOGOUT ==============
                 Card(
                   elevation: 2,
                   color: Colors.white,
@@ -136,7 +119,6 @@ class ProfilePage extends StatelessWidget {
                     onTap: _handleLogout,
                   ),
                 ),
-                // ============== AKHIR LOGOUT ==============
 
                 const SizedBox(height: 20),
               ],
@@ -147,7 +129,6 @@ class ProfilePage extends StatelessWidget {
     );
   }
 
-  // Widget Pembantu untuk detail profil (Nama, NIM, Kelas)
   Widget _buildProfileDetail({
     required IconData icon, 
     required String title, 
@@ -176,7 +157,6 @@ class ProfilePage extends StatelessWidget {
     );
   }
   
-  // Widget Pembantu untuk Kartu Kesan dan Saran
   Widget _buildKesanSaranCard({
     required String title,
     required String content,

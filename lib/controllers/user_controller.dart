@@ -1,5 +1,3 @@
-// lib/controllers/user_controller.dart
-
 import 'package:flutter/material.dart';
 import 'package:prayer/models/user_model.dart';
 import 'package:prayer/services/encryption_service.dart';
@@ -8,7 +6,6 @@ import 'package:prayer/services/session_service.dart';
 import 'package:uuid/uuid.dart';
 
 class UserController extends ChangeNotifier {
-  // Deklarasikan dan inisialisasi instance HiveService
   final HiveService _hiveService = HiveService(); 
 
   UserModel? _currentUser;
@@ -70,7 +67,6 @@ class UserController extends ChangeNotifier {
     return null;
   }
 
-  // REVISI: Nonaktifkan Auto-Login setelah registrasi
   Future<String?> register(String name, String email, String password) async {
     _isLoading = true;
     notifyListeners();
@@ -94,16 +90,10 @@ class UserController extends ChangeNotifier {
 
     await _hiveService.saveUser(newUser);
 
-    // HAPUS BARIS AUTO-LOGIN: Pengguna harus login manual setelah register
-    // HAPUS: await SessionService.createSession(newUser.uid);
-    // HAPUS: _currentUser = newUser;
-
     _isLoading = false;
     notifyListeners();
     return null;
   }
-
-  // LOGOUT (Pastikan sintaks bersih)
   Future<void> logout() async {
     await SessionService.clearSession();
     _currentUser = null;

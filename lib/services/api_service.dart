@@ -1,22 +1,15 @@
-// lib/services/api_service.dart
-
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../models/doa_model.dart'; 
 import '../models/dzikir_model.dart'; 
 import '../models/hadits_model.dart'; 
 
-// Host untuk Dzikir (muslim-api-three.vercel.app) - DIKEMBALIKAN KE API SEBELUMNYA
 const String _muslimApiHost = 'https://muslim-api-three.vercel.app'; 
-// Host untuk Doa (equran.id/api) - DIKEMBALIKAN KE API SEBELUMNYA
 const String _doaApiHost = 'https://equran.id/api';
-
-// HOST BARU UNTUK HADIS
 const String _haditsApiHost = 'https://hadith-api-go.vercel.app/api/v1'; 
 
 class DoaApiService {
   
-  // FUNGSI DOA (TETAP SAMA SEPERTI SEBELUMNYA)
   Future<List<DoaModel>> getAllDoa() async {
     final response = await http.get(Uri.parse('$_doaApiHost/doa')); 
     
@@ -39,17 +32,8 @@ class DoaApiService {
     }
   }
 
-  // lib/services/api_service.dart (REVISI FUNGSI getAllDzikir - SEMENTARA UNTUK DEBUG)
-
-// ... (semua kode di atas tetap sama)
-
-  // FUNGSI DZIKIR (TETAP SAMA SEPERTI SEBELUMNYA)
   Future<List<DzikirModel>> getAllDzikir({String? type}) async {
-    // KITA HANYA MENGAMBIL SEMUA, DAN BERHARAP SERVER MENGIRIMKAN SEMUA TYPES
     String url = '$_muslimApiHost/v1/dzikir';
-    
-    // HAPUS QUERY TYPE SEMENTARA, AGAR TIDAK ADA MASALAH KETIDAKSESUAIAN
-    // Jika Anda ingin mengambil Dzikir Sholat saja, gunakan: url += '?type=sholat'; 
     
     final response = await http.get(Uri.parse(url)); 
 
@@ -62,21 +46,12 @@ class DoaApiService {
     }
   }
 
-// ... (sisa kode)
-
- 
-
-
-
-  // FUNGSI HADITS (Mengambil Hadis No. 1 dari SETIAP Kitab)
   Future<List<HaditsModel>> getAllHadits() async {
-    // Daftar lengkap SLUG (nama kitab) Hadis
     const List<String> haditsSlugs = [
       'abu-dawud', 'ahmad', 'bukhari', 'darimi', 
       'ibnu-majah', 'malik', 'muslim', 'nasai', 'tirmidzi'
     ];
     
-    // JUMLAH HADIS YANG DIAMBIL DARI SETIAP KITAB (DITINGKATKAN menjadi 15)
     const int haditsPerKitab = 99; 
 
     List<Future<HaditsModel>> fetchTasks = [];
@@ -90,7 +65,6 @@ class DoaApiService {
             if (response.statusCode == 200) {
               return HaditsModel.fromJson(jsonDecode(response.body) as Map<String, dynamic>, slug);
             } else {
-              // Jika gagal, return HaditsModel dummy untuk memudahkan pemfilteran
               return HaditsModel(
                 id: '$slug-$number', 
                 arab: 'Gagal memuat Hadis $number', 
@@ -105,14 +79,7 @@ class DoaApiService {
       }
     }
     
-    // Jalankan semua permintaan secara paralel
     final results = await Future.wait(fetchTasks);
-    // Filter Hadis yang gagal (yang memiliki judul 'ERROR')
     return results.where((h) => !h.judul.startsWith('ERROR')).toList();
   }
 }
-    
-//     // Jalankan semua permintaan secara paralel
-//     return await Future.wait(fetchTasks);
-//   }
-// }

@@ -1,5 +1,3 @@
-// lib/views/savings_page.dart
-
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:timezone/data/latest.dart' as tzdata;
@@ -16,19 +14,15 @@ class SavingsPage extends StatefulWidget {
 }
 
 class _SavingsPageState extends State<SavingsPage> {
-  // Service instances
   final CurrencyService _currencyService = CurrencyService();
   final HiveService _hiveService = HiveService();
   
-  // FIX: Mengubah LocationService menjadi static final (seperti yang didiskusikan sebelumnya)
   static final LocationService _locationService = LocationService(); 
   
-  // Input Controller
   final TextEditingController _amountController = TextEditingController(); 
   
   static const String _fromCurrency = 'IDR'; 
 
-  // --- DATA HARDCODE ZONA WAKTU ---
   final List<Map<String, String>> _timeZones = const [
     {'name': 'WIB (Jakarta)', 'zoneId': 'Asia/Jakarta'},
     {'name': 'WITA (Makassar)', 'zoneId': 'Asia/Makassar'},
@@ -36,10 +30,8 @@ class _SavingsPageState extends State<SavingsPage> {
     {'name': 'London (GMT/BST)', 'zoneId': 'Europe/London'},
     {'name': 'Dubai (GST)', 'zoneId': 'Asia/Dubai'}, 
   ];
-  String _selectedTimeZoneId = 'Asia/Jakarta'; // Default: WIB
-  // ---------------------------------
+  String _selectedTimeZoneId = 'Asia/Jakarta'; 
 
-  // State Variables
   String _targetInputCurrency = ''; 
   String _targetTotalSavingsCurrency = ''; 
   
@@ -58,14 +50,12 @@ class _SavingsPageState extends State<SavingsPage> {
     super.initState();
     tzdata.initializeTimeZones();
     
-    // Inisialisasi daftar mata uang target
     _conversionTargets = CurrencyService.availableCurrencies
         .where((c) => c != _fromCurrency)
         .toList();
         
-    // Set nilai default yang valid
-    _targetTotalSavingsCurrency = _conversionTargets.contains('DINAR') ? 'DINAR' : 'USD'; 
-    _targetInputCurrency = _conversionTargets.contains('DINAR') ? 'DINAR' : 'USD'; 
+    _targetTotalSavingsCurrency = _conversionTargets.contains('DINAR') ? 'DINAR' : _conversionTargets.first; 
+    _targetInputCurrency = _conversionTargets.contains('DINAR') ? 'DINAR' : _conversionTargets.first; 
 
     _loadInitialData();
   }
@@ -80,9 +70,8 @@ class _SavingsPageState extends State<SavingsPage> {
     setState(() {
       _totalSavingsIDR = _hiveService.getTotalSavings();
     });
-    // Memuat kurs dan memperbarui waktu default
     _fetchRates();
-    _updateTimeDisplay(_selectedTimeZoneId); // Tampilkan waktu WIB (default)
+    _updateTimeDisplay(_selectedTimeZoneId); 
   }
 
   Future<void> _fetchRates() async {
@@ -94,7 +83,6 @@ class _SavingsPageState extends State<SavingsPage> {
     try {
       await _currencyService.fetchRates();
       
-      // Setelah kurs dimuat, hitung konversi awal
       _updateTotalSavingsConversion(_targetTotalSavingsCurrency);
       _updateInputConversion();
       
@@ -117,12 +105,10 @@ class _SavingsPageState extends State<SavingsPage> {
     }
   }
 
-  // FUNGSI BARU: Memperbarui tampilan waktu berdasarkan zona waktu yang dipilih
   void _updateTimeDisplay(String zoneId) {
     try {
       final location = tz.getLocation(zoneId);
       final now = tz.TZDateTime.now(location);
-      // Format waktu
       final formatter = DateFormat('dd MMM yyyy, HH:mm:ss').format(now);
 
       setState(() {
@@ -135,7 +121,6 @@ class _SavingsPageState extends State<SavingsPage> {
     }
   }
 
-  // FUNGSI KONVERSI TOTAL TABUNGAN
   void _updateTotalSavingsConversion(String targetCurrency) {
      if (_currencyService.getRates().isEmpty) return;
 
@@ -163,7 +148,6 @@ class _SavingsPageState extends State<SavingsPage> {
      }
   }
 
-  // FUNGSI KONVERSI INPUT AMOUNT
   void _updateInputConversion() {
     if (_currencyService.getRates().isEmpty) {
       setState(() {
@@ -237,12 +221,11 @@ class _SavingsPageState extends State<SavingsPage> {
       return;
     }
     
-    // Simpan ke Hive (selalu dalam IDR)
     await _hiveService.addSavings(amount); 
     
-    _amountController.clear(); // Bersihkan input
-    _updateTotalSavingsConversion(_targetTotalSavingsCurrency); // Perbarui Total Tabungan
-    _updateInputConversion(); // Perbarui konversi input (sekarang 0.0)
+    _amountController.clear(); 
+    _updateTotalSavingsConversion(_targetTotalSavingsCurrency); 
+    _updateInputConversion(); 
     
     if (context.mounted) {
        ScaffoldMessenger.of(context).showSnackBar(
@@ -266,13 +249,11 @@ class _SavingsPageState extends State<SavingsPage> {
     
     return Column(
       children: [
-        // 1. App Bar
         AppBar(
-          title: const Text('Tabungan Haji/Umroh', style: TextStyle(color: Colors.white),),
+          title: const Text('Tabungan Haji/Umroh'),
           backgroundColor: theme.primaryColor,
         ),
         
-        // 2. Body
         Expanded(
           child: SingleChildScrollView(
             padding: const EdgeInsets.only(left: 16.0, right: 16.0, top: 16.0, bottom: 80.0), 
@@ -280,7 +261,6 @@ class _SavingsPageState extends State<SavingsPage> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 
-                // --- KARTU TOTAL TABUNGAN (Dikonversi) ---
                 Card(
                   elevation: 4,
                   color: theme.primaryColor.withOpacity(0.9),
@@ -295,7 +275,6 @@ class _SavingsPageState extends State<SavingsPage> {
                             const Text('Total Tabungan Dalam:', 
                               style: TextStyle(fontSize: 16, color: Colors.white70)),
                             
-                            // DROPDOWN MATA UANG TOTAL TABUNGAN
                             DropdownButton<String>(
                               value: _targetTotalSavingsCurrency,
                               dropdownColor: theme.primaryColor,
@@ -321,13 +300,12 @@ class _SavingsPageState extends State<SavingsPage> {
                         ),
                         const SizedBox(height: 5),
                         Text(
-                          // Menampilkan Total Tabungan yang Dikonversi
                           _formatCurrencyResult(_convertedTotalSavings, _targetTotalSavingsCurrency),
                           style: const TextStyle(fontSize: 32, color: Colors.white, fontWeight: FontWeight.bold),
                         ),
                         const SizedBox(height: 5),
                         Text(
-                          'Total dalam Rupiah: ${_formatCurrencyResult(_totalSavingsIDR, 'IDR')}',
+                          'Total Asli: ${_formatCurrencyResult(_totalSavingsIDR, 'IDR')}',
                           style: const TextStyle(fontSize: 12, color: Colors.white54),
                         ),
                       ],
@@ -337,10 +315,9 @@ class _SavingsPageState extends State<SavingsPage> {
                 
                 const SizedBox(height: 20),
                 
-                // 1. KARTU PEMILIH WAKTU
                 Card(
                   elevation: 2,
-                  color: theme.colorScheme.surface, // Menggunakan Surface Color yang lebih terang untuk background kartu
+                  color: theme.colorScheme.surface, 
                   child: Padding(
                     padding: const EdgeInsets.all(12.0),
                     child: Column(
@@ -349,9 +326,11 @@ class _SavingsPageState extends State<SavingsPage> {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            const Text('Zona Waktu Transaksi', style: TextStyle(fontWeight: FontWeight.bold)),
+                            Text(
+                              'Zona Waktu Transaksi', 
+                              style: TextStyle(fontWeight: FontWeight.bold, color: theme.primaryColor)
+                            ),
                             
-                            // DROPDOWN PEMILIH ZONA WAKTU
                             DropdownButton<String>(
                               value: _selectedTimeZoneId,
                               items: _timeZones.map((zone) {
@@ -372,14 +351,19 @@ class _SavingsPageState extends State<SavingsPage> {
                           ],
                         ),
                         const SizedBox(height: 5),
-                        // HASIL WAKTU YANG DIBUAT JELAS
-                        Text(
-                          _currentTime, 
-                          style: TextStyle(
-                            fontSize: 16, 
-                            fontWeight: FontWeight.w600, 
-                            color: theme.colorScheme.tertiary // Warna utama agar kontras
-                          )
+                        Row(
+                          children: [
+                            Icon(Icons.schedule, size: 20, color: theme.colorScheme.secondary),
+                            const SizedBox(width: 8),
+                            Text(
+                              _currentTime, 
+                              style: TextStyle(
+                                fontSize: 18, 
+                                fontWeight: FontWeight.w600, 
+                                color: theme.primaryColor 
+                              )
+                            ),
+                          ],
                         ),
                       ],
                     ),
@@ -388,7 +372,6 @@ class _SavingsPageState extends State<SavingsPage> {
                 
                 const SizedBox(height: 20),
 
-                // 2. INPUT JUMLAH (IDR)
                 TextField(
                   controller: _amountController,
                   keyboardType: const TextInputType.numberWithOptions(decimal: true),
@@ -406,7 +389,6 @@ class _SavingsPageState extends State<SavingsPage> {
 
                 const SizedBox(height: 20),
 
-                // 3. DROPDOWN PILIH MATA UANG TARGET (UNTUK INPUT)
                 InputDecorator(
                   decoration: const InputDecoration(
                     labelText: 'Konversi Input Ke Mata Uang:',
@@ -427,7 +409,7 @@ class _SavingsPageState extends State<SavingsPage> {
                         if (newValue != null) {
                           setState(() {
                             _targetInputCurrency = newValue;
-                            _updateInputConversion(); // Konversi Input
+                            _updateInputConversion(); 
                           });
                         }
                       },
@@ -437,27 +419,25 @@ class _SavingsPageState extends State<SavingsPage> {
 
                 const SizedBox(height: 30),
 
-                // 4. HASIL KONVERSI INPUT AMOUNT (Khusus Hasil Input)
                 Card(
                   elevation: 4,
-                  // Menggunakan warna aksen sekunder untuk kontras
-                  color: theme.colorScheme.tertiary.withOpacity(0.8), 
+                  color: theme.colorScheme.secondary.withOpacity(0.8),
                   child: Padding(
                     padding: const EdgeInsets.all(20.0),
                     child: Column(
                       children: [
                         Text('Nilai Input dalam $_targetInputCurrency:', 
-                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
+                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: theme.primaryColor)),
                         const SizedBox(height: 10),
                         Text(
                           _formatCurrencyResult(_convertedInputAmount, _targetInputCurrency),
-                          style: TextStyle(fontSize: 32, color: Colors.white, fontWeight: FontWeight.bold),
+                          style: TextStyle(fontSize: 32, color: theme.primaryColor, fontWeight: FontWeight.bold),
                         ),
                         const SizedBox(height: 10),
                         Text(
                           _statusMessage, 
                           textAlign: TextAlign.center,
-                          style: TextStyle(color: Colors.white, fontSize: 12),
+                          style: TextStyle(color: theme.primaryColor, fontSize: 12),
                         ),
                       ],
                     ),
@@ -466,7 +446,6 @@ class _SavingsPageState extends State<SavingsPage> {
                 
                 const SizedBox(height: 20),
 
-                // 5. TOMBOL SIMPAN TRANSAKSI
                 ElevatedButton.icon(
                   onPressed: _isLoading ? null : _saveTransaction,
                   icon: _isLoading 

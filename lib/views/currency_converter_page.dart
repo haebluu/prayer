@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart'; // <--- TAMBAH BARIS INI
+import 'package:intl/intl.dart';
 import '../services/currency_service.dart';
 
 class CurrencyConverterPage extends StatefulWidget {
@@ -13,11 +13,9 @@ class _CurrencyConverterPageState extends State<CurrencyConverterPage> {
   final CurrencyService _currencyService = CurrencyService();
   final TextEditingController _amountController = TextEditingController(text: '1.0');
   
-  // State untuk mata uang default
   String _fromCurrency = 'USD';
   String _toCurrency = 'IDR';
 
-  // State untuk hasil konversi dan status
   String _result = '0.00 IDR';
   String _statusMessage = 'Siap menghitung. Tekan Konversi.';
   bool _isLoading = false;
@@ -25,11 +23,8 @@ class _CurrencyConverterPageState extends State<CurrencyConverterPage> {
   @override
   void initState() {
     super.initState();
-    // Inisialisasi: ambil kurs terbaru saat pertama kali View dimuat
     _fetchAndConvertRates(); 
   }
-
-  // Fungsi untuk mengambil kurs dari API dan melakukan konversi awal
   Future<void> _fetchAndConvertRates() async {
     setState(() {
       _isLoading = true;
@@ -38,7 +33,6 @@ class _CurrencyConverterPageState extends State<CurrencyConverterPage> {
 
     try {
       await _currencyService.fetchRates();
-      // Konversi otomatis setelah kurs didapatkan
       _convertCurrency();
     } on CurrencyServiceException catch (e) {
       setState(() {
@@ -55,7 +49,6 @@ class _CurrencyConverterPageState extends State<CurrencyConverterPage> {
     }
   }
 
-  // Fungsi untuk melakukan perhitungan konversi
   void _convertCurrency() {
     if (_isLoading) return;
 
@@ -77,7 +70,6 @@ class _CurrencyConverterPageState extends State<CurrencyConverterPage> {
         amount,
       );
       
-      // Format hasil (menggunakan NumberFormat dari intl package)
       final formatter = NumberFormat.currency(
         locale: 'id_ID', 
         symbol: _toCurrency == 'IDR' ? 'Rp' : '$_toCurrency ', 
@@ -86,7 +78,6 @@ class _CurrencyConverterPageState extends State<CurrencyConverterPage> {
       
       setState(() {
         _result = formatter.format(convertedAmount);
-        // Di dalam CurrencyConverterPage._convertCurrency()
         final lastFetchTime = _currencyService.lastFetch?.toLocal().toString().split('.')[0] 
                               ?? 'Waktu Tidak Diketahui';
         _statusMessage = 'Konversi berhasil pada $lastFetchTime';     
