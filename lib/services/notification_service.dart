@@ -1,98 +1,99 @@
-
 import 'package:flutter/widgets.dart'; 
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:timezone/timezone.dart' as tz;
-import 'package:timezone/data/latest.dart' as tzdata; 
+// Hapus impor timezone karena notifikasi instan tidak memerlukannya
+// import 'package:timezone/timezone.dart' as tz;
+// import 'package:timezone/data/latest.dart' as tzdata; 
 
 class NotificationService {
-  static final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin = 
-      FlutterLocalNotificationsPlugin();
+ static final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin = 
+   FlutterLocalNotificationsPlugin();
+      
+ // Channel ID khusus untuk notifikasi transaksi instan
+ static const String _transactionChannelId = 'transaction_channel';
+ static const String _transactionChannelName = 'Notifikasi Transaksi';
+ static const String _transactionChannelDescription = 'Notifikasi saat tabungan berhasil disimpan';
 
-  static Future<void> init() async {
-    tzdata.initializeTimeZones();
-    tz.setLocalLocation(tz.getLocation('Asia/Jakarta')); 
+ static Future<void> init() async {
+  // Hapus inisialisasi TimeZone
+  // tzdata.initializeTimeZones();
+  // tz.setLocalLocation(tz.getLocation('Asia/Jakarta')); 
 
-    const AndroidInitializationSettings initializationSettingsAndroid =
-        AndroidInitializationSettings('@mipmap/ic_launcher'); 
+  const AndroidInitializationSettings initializationSettingsAndroid =
+    AndroidInitializationSettings('@mipmap/ic_launcher'); 
+  
+  const DarwinInitializationSettings initializationSettingsIOS = DarwinInitializationSettings();
+
+  const InitializationSettings initializationSettings = InitializationSettings(
+   android: initializationSettingsAndroid,
+   iOS: initializationSettingsIOS, 
+  );
+  
+  await flutterLocalNotificationsPlugin.initialize(
+   initializationSettings,
+  );
+
+  final bool? androidGranted = await flutterLocalNotificationsPlugin
+    .resolvePlatformSpecificImplementation<
+      AndroidFlutterLocalNotificationsPlugin>()
+    ?.requestNotificationsPermission();
     
-    const DarwinInitializationSettings initializationSettingsIOS = DarwinInitializationSettings();
-
-    const InitializationSettings initializationSettings = InitializationSettings(
-      android: initializationSettingsAndroid,
-      iOS: initializationSettingsIOS, 
-    );
-    
-    await flutterLocalNotificationsPlugin.initialize(
-      initializationSettings,
-    );
-
-    final bool? androidGranted = await flutterLocalNotificationsPlugin
-        .resolvePlatformSpecificImplementation<
-            AndroidFlutterLocalNotificationsPlugin>()
-        ?.requestNotificationsPermission();
-        
-    if (androidGranted == false) {
-       debugPrint('Izin notifikasi Android ditolak!');
-    }
-    
-    await flutterLocalNotificationsPlugin
-        .resolvePlatformSpecificImplementation<
-            IOSFlutterLocalNotificationsPlugin>()
-        ?.requestPermissions(
-          alert: true,
-          badge: true,
-          sound: true,
-        );
+  if (androidGranted == false) {
+   debugPrint('Izin notifikasi Android ditolak!');
   }
+  
+  await flutterLocalNotificationsPlugin
+    .resolvePlatformSpecificImplementation<
+      IOSFlutterLocalNotificationsPlugin>()
+    ?.requestPermissions(
+     alert: true,
+     badge: true,
+     sound: true,
+    );
+ }
+  
+ // ✅ FUNGSI BARU: Menampilkan notifikasi instan
+ static Future<void> showInstantNotification({
+  required int id,
+  required String title,
+  required String body,
+ }) async {
+  const AndroidNotificationDetails androidPlatformChannelSpecifics =
+    AndroidNotificationDetails(
+   _transactionChannelId,
+   _transactionChannelName,
+   channelDescription: _transactionChannelDescription,
+   importance: Importance.max,
+   priority: Priority.high,
+   ticker: 'ticker',
+   // Setting custom sound jika ada
+   // sound: RawResourceAndroidNotificationSound('notif_sound'), 
+  );
 
-  static Future<void> scheduleDailyNotification({
-    required int id,
-    required int hour,
-    required int minute,
-    required String title,
-    required String body,
-  }) async {
-    final tz.TZDateTime now = tz.TZDateTime.now(tz.local);
-    tz.TZDateTime scheduledDate = tz.TZDateTime(
-      tz.local,
-      now.year,
-      now.month,
-      now.day,
-      hour,
-      minute,
+  const DarwinNotificationDetails iOSPlatformChannelSpecifics =
+    DarwinNotificationDetails(
+     // Setting custom sound jika ada
+     // sound: 'notif_sound.aiff', 
+    );
+  
+  const NotificationDetails platformChannelSpecifics =
+    NotificationDetails(
+     android: androidPlatformChannelSpecifics,
+     iOS: iOSPlatformChannelSpecifics,
     );
 
-    if (scheduledDate.isBefore(now)) {
-      scheduledDate = scheduledDate.add(const Duration(days: 1));
-    }
+  await flutterLocalNotificationsPlugin.show(
+   id,
+   title,
+   body,
+   platformChannelSpecifics,
+   payload: 'transaction_completed',
+  );
+ }
 
-    const AndroidNotificationDetails androidPlatformChannelSpecifics =
-        AndroidNotificationDetails(
-      'dzikir_daily_channel',
-      'Pengingat Dzikir Harian',
-      channelDescription: 'Pengingat otomatis untuk Dzikir pagi dan sore',
-      importance: Importance.max,
-      priority: Priority.high,
-    );
-    
-    const NotificationDetails platformChannelSpecifics =
-        NotificationDetails(android: androidPlatformChannelSpecifics);
-
-    debugPrint('Notifikasi Dzikir dijadwalkan: ID $id pada $scheduledDate'); 
-
-    await flutterLocalNotificationsPlugin.zonedSchedule(
-      id,
-      title,
-      body,
-      scheduledDate,
-      platformChannelSpecifics, 
-      uiLocalNotificationDateInterpretation: UILocalNotificationDateInterpretation.absoluteTime,
-      matchDateTimeComponents: DateTimeComponents.time,
-      androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
-    );
-  }
-
-  static Future<void> cancelAllNotifications() async {
-    await flutterLocalNotificationsPlugin.cancelAll();
-  }
+ // Hapus scheduleDailyNotification
+ // static Future<void> scheduleDailyNotification({ ... }) async { ... }
+  
+ static Future<void> cancelAllNotifications() async {
+  await flutterLocalNotificationsPlugin.cancelAll();
+ }
 }

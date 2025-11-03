@@ -3,132 +3,178 @@ import 'package:provider/provider.dart';
 import '../controllers/user_controller.dart';
 
 class RegisterPage extends StatefulWidget {
-  const RegisterPage({super.key});
+ const RegisterPage({super.key});
 
-  @override
-  State<RegisterPage> createState() => _RegisterPageState();
+ @override
+ State<RegisterPage> createState() => _RegisterPageState();
 }
 
 class _RegisterPageState extends State<RegisterPage> {
-  final _nameController = TextEditingController();
-  final _emailController = TextEditingController();
-  final _passwordController = TextEditingController();
-  final _formKey = GlobalKey<FormState>();
+ final _nameController = TextEditingController();
+ final _emailController = TextEditingController();
+ final _passwordController = TextEditingController();
+ final _formKey = GlobalKey<FormState>();
 
-  @override
-  Widget build(BuildContext context) {
-    final userController = context.watch<UserController>();
-    final theme = Theme.of(context);
+ @override
+ Widget build(BuildContext context) {
+  // Menggunakan context.watch agar halaman me-rebuild saat isLoading berubah
+  final userController = context.watch<UserController>();
+  final theme = Theme.of(context);
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text("Daftar Akun", style: TextStyle(color: theme.colorScheme.onPrimary)),
-        backgroundColor: theme.primaryColor,
-        centerTitle: true,
-      ),
-      body: Center( // Center content on screen
-        child: SingleChildScrollView( // Allow scrolling if keyboard/content overflows
-          padding: const EdgeInsets.all(20),
-          child: Form(
-            key: _formKey,
-            child: Card(
-              elevation: 8,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(24.0), // Padding di dalam Card
-                child: Column(
-                  mainAxisSize: MainAxisSize.min, // Biarkan Column sekecil mungkin
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    // 1. Input Nama
-                    TextFormField(
-                      controller: _nameController,
-                      decoration: const InputDecoration(labelText: "Nama"),
-                      validator: (value) =>
-                          value!.isEmpty ? 'Nama tidak boleh kosong' : null,
-                    ),
-                    const SizedBox(height: 16),
-                    
-                    // 2. Input Email
-                    TextFormField(
-                      controller: _emailController,
-                      decoration: const InputDecoration(labelText: "Email"),
-                      keyboardType: TextInputType.emailAddress,
-                      validator: (value) =>
-                          value!.isEmpty ? 'Email tidak boleh kosong' : null,
-                    ),
-                    const SizedBox(height: 16),
-                    
-                    // 3. Input Password
-                    TextFormField(
-                      controller: _passwordController,
-                      decoration: const InputDecoration(labelText: "Password"),
-                      obscureText: true,
-                      validator: (value) =>
-                          value!.isEmpty ? 'Password tidak boleh kosong' : null,
-                    ),
-                    const SizedBox(height: 24),
-                    
-                    // Tombol Daftar
-                    ElevatedButton(
-                      onPressed: userController.isLoading
-                          ? null
-                          : () async {
-                              if (_formKey.currentState!.validate()) {
-                                final userControllerRead = context.read<UserController>(); 
-                                
-                                final result = await userControllerRead.register(
-                                  _nameController.text.trim(),
-                                  _emailController.text.trim(),
-                                  _passwordController.text.trim(),
-                                );
-                                
-                                if (result == null) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                        content: Text('Registrasi berhasil! Silakan login.')),
-                                  );
-                                  
-                                  if (mounted) {
-                                    // Navigasi yang benar: Kembali ke LoginPage
-                                    Navigator.pop(context); 
-                                  }
-                                } else {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(content: Text(result)),
-                                  );
-                                }
-                              }
-                            },
-                      // Menggunakan warna tema Anda
-                      style: ElevatedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 15),
-                        backgroundColor: theme.colorScheme.secondary, 
-                        foregroundColor: theme.colorScheme.onPrimary,
-                      ),
-                      child: userController.isLoading
-                          ? const CircularProgressIndicator(color: Colors.white)
-                          : const Text("Daftar", style: TextStyle(fontWeight: FontWeight.bold)),
-                    ),
-                    
-                    const SizedBox(height: 16),
-                    
-                    // Link ke Login
-                    TextButton(
-                      onPressed: () {
-                        Navigator.pop(context); // Kembali ke LoginPage
-                      },
-                      child: const Text("Sudah punya akun? Masuk di sini"),
-                    )
-                  ],
-                ),
-              ),
-            ),
+  return Scaffold(
+   appBar: AppBar(
+    title: Text(
+     "Daftar Akun", 
+     style: TextStyle(color: theme.colorScheme.onPrimary)
+    ),
+    backgroundColor: theme.primaryColor,
+    foregroundColor: Colors.white, // Tambahan foregroundColor agar ikon back putih
+    centerTitle: true,
+   ),
+   body: Center(
+    child: SingleChildScrollView(
+     padding: const EdgeInsets.all(20),
+     child: Form(
+      key: _formKey,
+      child: Card(
+       elevation: 8,
+       shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(20),
+       ),
+       child: Padding(
+        padding: const EdgeInsets.all(24.0),
+        child: Column(
+         mainAxisSize: MainAxisSize.min,
+         crossAxisAlignment: CrossAxisAlignment.stretch,
+         children: [
+          // ======= 1. INPUT NAMA (Diperbarui) =======
+          TextFormField(
+           controller: _nameController,
+           decoration: const InputDecoration(
+            labelText: "Nama",
+            prefixIcon: Icon(Icons.person_outline), // Ikon Baru
+            border: OutlineInputBorder(), // Border Baru
+           ),
+           validator: (value) =>
+             value!.isEmpty ? 'Nama tidak boleh kosong' : null,
           ),
+          const SizedBox(height: 16),
+          
+          // ======= 2. INPUT EMAIL (Diperbarui) =======
+          TextFormField(
+           controller: _emailController,
+           decoration: const InputDecoration(
+            labelText: "Email",
+            prefixIcon: Icon(Icons.email_outlined), // Ikon Baru
+            border: OutlineInputBorder(), // Border Baru
+           ),
+           keyboardType: TextInputType.emailAddress,
+           validator: (value) =>
+             value!.isEmpty ? 'Email tidak boleh kosong' : null,
+          ),
+          const SizedBox(height: 16),
+          
+          // ======= 3. INPUT PASSWORD (Diperbarui) =======
+          TextFormField(
+           controller: _passwordController,
+           decoration: const InputDecoration(
+            labelText: "Password",
+            prefixIcon: Icon(Icons.lock_outline), // Ikon Baru
+            border: OutlineInputBorder(), // Border Baru
+           ),
+           obscureText: true,
+           validator: (value) =>
+             value!.isEmpty ? 'Password tidak boleh kosong' : null,
+          ),
+          const SizedBox(height: 24),
+          
+          // ======= TOMBOL DAFTAR (Diperbarui) =======
+          ElevatedButton(
+           onPressed: userController.isLoading
+             ? null
+             : () async {
+               if (_formKey.currentState!.validate()) {
+                // Gunakan context.read saat memanggil fungsi
+                final userControllerRead = context.read<UserController>(); 
+                
+                final result = await userControllerRead.register(
+                 _nameController.text.trim(),
+                 _emailController.text.trim(),
+                 _passwordController.text.trim(),
+                );
+                
+                if (result == null) {
+                 // Berhasil
+                 if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                   const SnackBar(
+                    content: Text('Registrasi berhasil! Silakan login.'),
+                    backgroundColor: Colors.green, // Snack bar hijau
+                   ),
+                  );
+                  
+                  // Navigasi yang benar: Kembali ke LoginPage
+                  Navigator.pop(context); 
+                 }
+                } else {
+                 // Gagal
+                 if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                   SnackBar(
+                    content: Text(result),
+                    backgroundColor: Colors.redAccent, // Snack bar merah
+                   ),
+                  );
+                 }
+                }
+               }
+              },
+           style: ElevatedButton.styleFrom(
+            padding: const EdgeInsets.symmetric(
+              vertical: 15, horizontal: 30), // Diperbarui
+            backgroundColor: theme.colorScheme.secondary, 
+            foregroundColor: theme.colorScheme.onPrimary,
+            textStyle: const TextStyle(
+             fontWeight: FontWeight.bold,
+             fontSize: 16, // Diperbarui
+            ),
+            shape: RoundedRectangleBorder( // Diperbarui
+             borderRadius: BorderRadius.circular(12),
+            ),
+           ),
+           child: userController.isLoading
+             ? const SizedBox( // Diperbarui untuk konsistensi loading
+               width: 24,
+               height: 24,
+               child: CircularProgressIndicator(
+                color: Colors.white,
+                strokeWidth: 2.5,
+               ),
+              )
+             : const Text("Daftar"),
+          ),
+          
+          const SizedBox(height: 16),
+          
+          // ======= LINK KE LOGIN (Diperbarui) =======
+          TextButton(
+           onPressed: () {
+            Navigator.pop(context); // Kembali ke LoginPage
+           },
+           child: const Text(
+            "Sudah punya akun? Masuk di sini",
+            style: TextStyle(
+             decoration: TextDecoration.underline, // Diperbarui
+            ),
+           ),
+          )
+         ],
         ),
+       ),
       ),
-    );
-  }
+     ),
+    ),
+   ),
+  );
+ }
 }

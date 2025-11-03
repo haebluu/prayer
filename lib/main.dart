@@ -1,6 +1,8 @@
+// lib/main.dart (CORRECTED RootPage)
+
 import 'package:flutter/material.dart';
-import 'package:prayer/services/notification_service.dart';
 import 'package:provider/provider.dart';
+import 'package:prayer/services/notification_service.dart';
 
 import 'controllers/user_controller.dart'; 
 import 'controllers/home_controller.dart';
@@ -25,6 +27,7 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // ... (MyApp content remains the same)
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => UserController()),
@@ -37,7 +40,6 @@ class MyApp extends StatelessWidget {
           primaryColor: const Color(0xFF43766C), 
           primarySwatch: Colors.grey, 
           scaffoldBackgroundColor: const Color(0xFFF8FAE5),
-
           colorScheme: ColorScheme.fromSwatch(
             primarySwatch: Colors.grey,
           ).copyWith(
@@ -55,13 +57,15 @@ class MyApp extends StatelessWidget {
   }
 }
 
+// FIX 3 & 4: Mengubah RootPage menjadi StatelessWidget sederhana
 class RootPage extends StatelessWidget {
   const RootPage({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final userController = Provider.of<UserController>(context);
-
+    // Mengandalkan state dari UserController
+    final userController = context.watch<UserController>(); 
+    
     if (userController.isLoading) {
       return const Scaffold(
         body: Center(child: CircularProgressIndicator()),

@@ -1,135 +1,120 @@
 import 'package:flutter/material.dart';
-import 'package:prayer/models/user_model.dart';
-import 'package:prayer/services/encryption_service.dart';
-import 'package:prayer/services/hive_service.dart'; 
-import 'package:prayer/services/session_service.dart';
 import 'package:uuid/uuid.dart';
+import '../models/user_model.dart';
+import '../services/encryption_service.dart';
+import '../services/hive_service.dart';
+import '../services/session_service.dart';
 
 class UserController extends ChangeNotifier {
-  final HiveService _hiveService = HiveService(); 
-
+  final HiveService _hiveService = HiveService();
   UserModel? _currentUser;
-  bool _isLoading = true; 
+  bool _isLoading = false;
 
   UserModel? get currentUser => _currentUser;
   bool get isLoading => _isLoading;
 
   UserController() {
-    initController();
+    checkSession();
   }
 
-  Future<void> initController() async {
-    await checkSession();
-  }
-
+  // ✅ Cek session aktif saat app dibuka
   Future<void> checkSession() async {
     _isLoading = true;
     notifyListeners();
 
     final userId = await SessionService.getSessionToken();
-    if (userId != null) {
-      _currentUser = _hiveService.getUser(userId); 
+    if (userId != null && userId.isNotEmpty) {
+      final user = _hiveService.getUserById(userId);
+      if (user != null) {
+        _currentUser = user;
+      } else {
+        await SessionService.clearSession();
+      }
     }
 
     _isLoading = false;
     notifyListeners();
   }
 
-
-  // lib/controllers/user_controller.dart (Revisi Fungsi Login)
-
-// ... (kode di atas)
-
+  // ✅ Login logic yang aman
   Future<String?> login(String email, String password) async {
     _isLoading = true;
     notifyListeners();
 
-    String? errorMessage; // Variabel lokal untuk error
-
     try {
-        final user = _hiveService.getUserByEmail(email); 
-
-        // 1. Cek User dan Verifikasi Password
-        if (user == null || !EncryptionService.verifyPassword(password, user.passwordHash)) {
-          return 'Email atau password salah.';
-        }
-
-        // 2. Login Sukses
-        await SessionService.createSession(user.uid);
-
-        final updatedUser = UserModel(
-          uid: user.uid,
-          email: user.email,
-          name: user.name,
-          passwordHash: user.passwordHash,
-          lastLogin: DateTime.now(),
-          doaOpened: user.doaOpened,
-        );
-
-        await _hiveService.updateUser(updatedUser);
-        _currentUser = updatedUser;
-        
-    } catch (e) {
-        // Tangkap error tak terduga (misal error I/O Hive)
-        errorMessage = 'Terjadi kesalahan sistem: $e';
-    } finally {
-        // Pastikan loading selalu mati, meskipun ada error
+      final user = _hiveService.getUserByEmail(email);
+      if (user == null) {
         _isLoading = false;
         notifyListeners();
-    }
-    
-    return errorMessage; // Mengembalikan null jika sukses
-  }
+        return "Email tidak terdaftar.";
+      }
 
-// ... (sisa kode tetap sama)
+      final isPasswordCorrect = EncryptionService.verifyPassword(password, user.passwordHash);
+      if (!isPasswordCorrect) {
+        _isLoading = false;
+        notifyListeners();
+        return "Password salah.";
+      }
+
+      await SessionService.createSession(user.uid);
+      _currentUser = user;
+      _hiveService.updateUser(user);
+
+      _isLoading = false;
+      notifyListeners();
+      return null; // sukses
+    } catch (e) {
+      _isLoading = false;
+      notifyListeners();
+      return "Terjadi kesalahan saat login: $e";
+    }
+  }
 
   Future<String?> register(String name, String email, String password) async {
     _isLoading = true;
     notifyListeners();
 
-    final existing = _hiveService.getUserByEmail(email);
-    if (existing != null) {
+    try {
+      final existing = _hiveService.getUserByEmail(email);
+      if (existing != null) {
+        _isLoading = false;
+        notifyListeners();
+        return "Email sudah terdaftar!";
+      }
+
+      final passwordHash = EncryptionService.hashPassword(password);
+      final newUser = UserModel(
+        uid: const Uuid().v4(),
+        name: name,
+        email: email,
+        passwordHash: passwordHash,
+        doaOpened: 0,
+        lastLogin: DateTime.now(),
+      );
+
+      await _hiveService.saveUser(newUser);
+
       _isLoading = false;
       notifyListeners();
-      return 'Email sudah terdaftar!';
+      return null;
+    } catch (e) {
+      _isLoading = false;
+      notifyListeners();
+      return "Terjadi kesalahan saat registrasi: $e";
     }
-
-    final passwordHash = EncryptionService.hashPassword(password);
-    final newUser = UserModel(
-      uid: const Uuid().v4(),
-      email: email,
-      name: name,
-      lastLogin: DateTime.now(),
-      passwordHash: passwordHash,
-      doaOpened: 0,
-    );
-
-    await _hiveService.saveUser(newUser);
-
-    _isLoading = false;
-    notifyListeners();
-    return null;
   }
+
   Future<void> logout() async {
     await SessionService.clearSession();
     _currentUser = null;
     notifyListeners();
   }
 
-  Future<void> incrementDoaOpened() async {
-    if (_currentUser != null) {
-      final user = _currentUser!;
-      final updatedUser = UserModel(
-        uid: user.uid,
-        email: user.email,
-        name: user.name,
-        doaOpened: user.doaOpened + 1,
-        lastLogin: user.lastLogin,
-        passwordHash: user.passwordHash,
-      );
-      _currentUser = updatedUser;
-      await _hiveService.updateUser(updatedUser);
-      notifyListeners();
-    }
+  // ✅ Tambahan supaya RootPage bisa panggil ini
+  UserModel? getUserById(String uid) => _hiveService.getUserById(uid);
+
+  void setCurrentUser(UserModel user) {
+    _currentUser = user;
+    notifyListeners();
   }
 }

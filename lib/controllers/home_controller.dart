@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:prayer/services/api_service.dart';
-import 'package:prayer/services/notification_service.dart';
 import '../models/doa_model.dart';
 import '../models/dzikir_model.dart'; 
 import '../models/hadits_model.dart'; 
@@ -93,24 +92,6 @@ class HomeController extends ChangeNotifier {
       notifyListeners();
     }
   }
-
-  void setupDzikirNotifications() async {
-  await NotificationService.scheduleDailyNotification(
-    id: 10,
-    hour: 5,  
-    minute: 30,
-    title: 'Dzikir Pagi',
-    body: 'Yuk mulai hari dengan dzikir pagi!',
-  );
-
-  await NotificationService.scheduleDailyNotification(
-    id: 20,
-    hour: 17, 
-    minute: 30,
-    title: 'Dzikir Sore',
-    body: 'Luangkan waktu sebentar untuk dzikir sore.',
-  );
-}
 
   List<DzikirModel> getDzikirByType(String type) {
     return _allDzikir.where((d) => d.type.toLowerCase() == type.toLowerCase()).toList();

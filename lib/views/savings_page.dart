@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:prayer/services/notification_service.dart';
 import 'package:timezone/data/latest.dart' as tzdata;
 import 'package:timezone/timezone.dart' as tz;
 import '../services/currency_service.dart';
@@ -204,35 +205,43 @@ class _SavingsPageState extends State<SavingsPage> {
   }
 
   Future<void> _saveTransaction() async {
-    double amount;
-    try {
-      amount = double.parse(_amountController.text);
-    } catch (e) {
-      setState(() {
-        _statusMessage = 'Input jumlah tidak valid.';
-      });
-      return;
-    }
-    
-    if (amount <= 0) {
-      setState(() {
-        _statusMessage = 'Jumlah tabungan harus lebih dari 0.';
-      });
-      return;
-    }
-    
-    await _hiveService.addSavings(amount); 
-    
-    _amountController.clear(); 
-    _updateTotalSavingsConversion(_targetTotalSavingsCurrency); 
-    _updateInputConversion(); 
-    
-    if (context.mounted) {
-       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Tabungan Rp${NumberFormat.decimalPattern().format(amount)} berhasil disimpan!')),
-       );
-    }
+  double amount;
+  try {
+   amount = double.parse(_amountController.text);
+  } catch (e) {
+   setState(() {
+    _statusMessage = 'Input jumlah tidak valid.';
+   });
+   return;
   }
+  
+  if (amount <= 0) {
+   setState(() {
+    _statusMessage = 'Jumlah tabungan harus lebih dari 0.';
+   });
+   return;
+  }
+  
+  await _hiveService.addSavings(amount); 
+  
+  _amountController.clear(); 
+  _updateTotalSavingsConversion(_targetTotalSavingsCurrency); 
+  _updateInputConversion(); 
+  
+  // ✅ TAMBAH FUNGSI NOTIFIKASI LOKAL DI SINI
+  final formattedAmount = NumberFormat.decimalPattern().format(amount);
+  NotificationService.showInstantNotification(
+   id: DateTime.now().millisecondsSinceEpoch % 100000, // ID unik
+   title: '💵 Tabungan Berhasil Disimpan!',
+   body: 'Anda baru saja menabung sejumlah Rp$formattedAmount. Semangat mencapai target!',
+  );
+  
+  if (context.mounted) {
+   ScaffoldMessenger.of(context).showSnackBar(
+    SnackBar(content: Text('Tabungan Rp$formattedAmount berhasil disimpan!')),
+   );
+  }
+ }
   
   String _formatCurrencyResult(double amount, String currency) {
     final formatter = NumberFormat.currency(

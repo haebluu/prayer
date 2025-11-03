@@ -1,76 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:flutter_local_notifications/flutter_local_notifications.dart'; 
 import '../controllers/home_controller.dart'; 
 import '../controllers/user_controller.dart';
-import '../services/notification_service.dart'; 
 import 'detail_doa_page.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
 
-  void _showNotificationStatusDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text("Status Pengingat Dzikir"),
-          content: FutureBuilder<List<PendingNotificationRequest>>(
-            future: NotificationService.flutterLocalNotificationsPlugin.pendingNotificationRequests(),
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return const SizedBox(
-                  height: 50,
-                  child: Center(child: CircularProgressIndicator())
-                );
-              }
-              if (snapshot.hasError) {
-                return const Text("Gagal memuat status notifikasi.");
-              }
-              
-              final pendingNotifications = snapshot.data ?? [];
-              
-              if (pendingNotifications.isEmpty) {
-                return const Text("Pengingat saat ini DINONAKTIFKAN.");
-              }
-              
-              return Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text("${pendingNotifications.length} Pengingat Dzikir AKTIF:", style: const TextStyle(fontWeight: FontWeight.bold)),
-                  ...pendingNotifications.map((n) => Text(
-                    "• ${n.title ?? 'Notifikasi'}",
-                    style: const TextStyle(fontSize: 14),
-                  )),
-                  const SizedBox(height: 10),
-                  const Text("Jadwal akan muncul besok pada pukul 05:30 dan 17:30.", style: TextStyle(fontSize: 12, color: Colors.grey)),
-                ],
-              );
-            },
-          ),
-          actions: <Widget>[
-            TextButton(
-              child: const Text("Tutup"),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-            TextButton(
-              child: const Text("Nonaktifkan Semua", style: TextStyle(color: Colors.red)),
-              onPressed: () async {
-                await NotificationService.cancelAllNotifications();
-                if (context.mounted) Navigator.of(context).pop();
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Semua Pengingat Dzikir telah dinonaktifkan.')),
-                );
-              },
-            ),
-          ],
-        );
-      },
-    );
-  }
+  
 
   @override
   Widget build(BuildContext context) {
@@ -88,41 +25,6 @@ class HomePage extends StatelessWidget {
             backgroundColor: theme.primaryColor,
             elevation: 0,
             automaticallyImplyLeading: false, 
-            actions: [ 
-              IconButton(
-                icon: const Icon(Icons.notifications_active, color: Colors.white),
-                tooltip: 'Aktifkan Pengingat Dzikir',
-                onPressed: () async {
-                  await NotificationService.cancelAllNotifications(); 
-
-                  // 2. Jadwalkan yang baru
-                  await NotificationService.scheduleDailyNotification(
-                    id: 10,
-                    hour: 5,
-                    minute: 30,
-                    title: 'Waktunya Dzikir Pagi',
-                    body: 'Yuk mulai hari dengan dzikir pagi!',
-                  );
-
-                  await NotificationService.scheduleDailyNotification(
-                    id: 20,
-                    hour: 17,
-                    minute: 30,
-                    title: 'Waktunya Dzikir Sore',
-                    body: 'Luangkan waktu sebentar untuk dzikir sore.',
-                  );
-
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Pengingat Dzikir Pagi & Sore Aktif!')),
-                  );
-                },
-              ),
-              IconButton(
-                icon: const Icon(Icons.info_outline, color: Colors.white),
-                tooltip: 'Cek Status Pengingat',
-                onPressed: () => _showNotificationStatusDialog(context),
-              ),
-            ],
           ),
           
           Container(

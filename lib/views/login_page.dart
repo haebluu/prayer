@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:prayer/main.dart';
 import 'package:provider/provider.dart';
 import '../controllers/user_controller.dart';
 import 'register_page.dart';
@@ -22,13 +23,16 @@ class _LoginPageState extends State<LoginPage> {
 
     return Scaffold(
       appBar: AppBar(
-        // Hapus const pada Text
-        title: Text("Login", style: TextStyle(color: theme.colorScheme.onPrimary)), // FIX DI SINI
+        title: Text(
+          "Login",
+          style: TextStyle(color: theme.colorScheme.onPrimary),
+        ),
         backgroundColor: theme.primaryColor,
+        foregroundColor: Colors.white,
         centerTitle: true,
       ),
-      body: Center( 
-        child: SingleChildScrollView( 
+      body: Center(
+        child: SingleChildScrollView(
           padding: const EdgeInsets.all(20),
           child: Form(
             key: _formKey,
@@ -42,52 +46,100 @@ class _LoginPageState extends State<LoginPage> {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
+                    // ======= EMAIL =======
                     TextFormField(
                       controller: _emailController,
-                      decoration: const InputDecoration(labelText: "Email"),
+                      decoration: const InputDecoration(
+                        labelText: "Email",
+                        prefixIcon: Icon(Icons.email_outlined),
+                        border: OutlineInputBorder(),
+                      ),
                       keyboardType: TextInputType.emailAddress,
                       validator: (value) =>
                           value!.isEmpty ? 'Email tidak boleh kosong' : null,
                     ),
                     const SizedBox(height: 16),
+
+                    // ======= PASSWORD =======
                     TextFormField(
                       controller: _passwordController,
-                      decoration: const InputDecoration(labelText: "Password"),
+                      decoration: const InputDecoration(
+                        labelText: "Password",
+                        prefixIcon: Icon(Icons.lock_outline),
+                        border: OutlineInputBorder(),
+                      ),
                       obscureText: true,
                       validator: (value) =>
                           value!.isEmpty ? 'Password tidak boleh kosong' : null,
                     ),
                     const SizedBox(height: 24),
+
+                    // ======= LOGIN BUTTON =======
                     ElevatedButton(
                       onPressed: userController.isLoading
                           ? null
                           : () async {
                               if (_formKey.currentState!.validate()) {
-                                final userController = context.read<UserController>();
                                 final result = await userController.login(
                                   _emailController.text.trim(),
                                   _passwordController.text.trim(),
                                 );
+
                                 if (result == null) {
-                                  // Navigasi sukses diurus oleh RootPage
+                                  // ✅ Login berhasil → RootPage akan rebuild otomatis
+                                  if (context.mounted) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                        content: Text("Login berhasil!"),
+                                        backgroundColor: Colors.green,
+                                      ),
+                                    );
+                                    // Navigator.pop(context); // Kembali ke RootPage
+                                    Navigator.of(context).pushAndRemoveUntil(
+ MaterialPageRoute(builder: (context) => const RootPage()),
+ (Route<dynamic> route) => false,
+);
+                                  }
                                 } else {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(content: Text(result)),
-                                  );
+                                  // ❌ Login gagal → tampilkan snackbar
+                                  if (context.mounted) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text(result),
+                                        backgroundColor: Colors.redAccent,
+                                      ),
+                                    );
+                                  }
                                 }
                               }
                             },
-                      // Menggunakan warna tema Anda
                       style: ElevatedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 15),
-                        backgroundColor: theme.colorScheme.secondary, 
+                        padding: const EdgeInsets.symmetric(
+                            vertical: 15, horizontal: 30),
+                        backgroundColor: theme.colorScheme.secondary,
                         foregroundColor: theme.colorScheme.onPrimary,
+                        textStyle: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
                       ),
                       child: userController.isLoading
-                          ? const CircularProgressIndicator(color: Colors.white)
-                          : const Text("Login", style: TextStyle(fontWeight: FontWeight.bold)),
+                          ? const SizedBox(
+                              width: 24,
+                              height: 24,
+                              child: CircularProgressIndicator(
+                                color: Colors.white,
+                                strokeWidth: 2.5,
+                              ),
+                            )
+                          : const Text("Login"),
                     ),
                     const SizedBox(height: 16),
+
+                    // ======= LINK KE REGISTER =======
                     TextButton(
                       onPressed: () {
                         Navigator.push(
@@ -96,8 +148,13 @@ class _LoginPageState extends State<LoginPage> {
                               builder: (_) => const RegisterPage()),
                         );
                       },
-                      child: const Text("Belum punya akun? Daftar di sini"),
-                    )
+                      child: const Text(
+                        "Belum punya akun? Daftar di sini",
+                        style: TextStyle(
+                          decoration: TextDecoration.underline,
+                        ),
+                      ),
+                    ),
                   ],
                 ),
               ),

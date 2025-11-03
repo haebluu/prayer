@@ -3,52 +3,60 @@ import '../models/user_model.dart';
 
 class HiveService {
   static const String userBoxName = 'userBox';
-  static const String settingsBoxName = 'settingsBox'; 
-  static const String totalSavingsKey = 'totalSavings'; 
-  static const String bookmarkBoxName = 'bookmarkBox'; 
+  static const String savingsBoxName = 'savingsBox';
 
-  static Future<void> init() async { 
+  static Future<void> init() async {
     await Hive.initFlutter();
-    Hive.registerAdapter(UserModelAdapter());
-    
+    if (!Hive.isAdapterRegistered(0)) {
+      Hive.registerAdapter(UserModelAdapter());
+    }
     await Hive.openBox<UserModel>(userBoxName);
-    await Hive.openBox<dynamic>(settingsBoxName);
+    await Hive.openBox<double>(savingsBoxName);
   }
-  
+
   Box<UserModel> get userBox => Hive.box<UserModel>(userBoxName);
-  Box<dynamic> get settingsBox => Hive.box<dynamic>(settingsBoxName); 
-  
-  double getTotalSavings() {
-    return settingsBox.get(totalSavingsKey) as double? ?? 0.0;
-  }
+  Box<double> get savingsBox => Hive.box<double>(savingsBoxName);
 
-  Future<void> addSavings(double amountInIDR) async {
-    final currentTotal = getTotalSavings();
-    final newTotal = currentTotal + amountInIDR;
-    await settingsBox.put(totalSavingsKey, newTotal); 
-  }
-  
-  Future<void> saveUser(UserModel user) async {
-    await userBox.put(user.uid, user);
-  }
-
+  // 🔹 Cari user berdasarkan email
   UserModel? getUserByEmail(String email) {
     try {
-      return userBox.values.firstWhere((u) => u.email == email);
+      return userBox.values.firstWhere(
+        (u) => u.email.trim().toLowerCase() == email.trim().toLowerCase(),
+      );
     } catch (e) {
       return null;
     }
   }
 
-  UserModel? getUser(String uid) { 
-    return userBox.get(uid); 
+  // 🔹 Cari user berdasarkan ID
+  UserModel? getUserById(String uid) {
+    try {
+      return userBox.get(uid);
+    } catch (e) {
+      return null;
+    }
   }
 
+  // 🔹 Simpan user baru
+  Future<void> saveUser(UserModel user) async {
+    await userBox.put(user.uid, user);
+  }
+
+  // 🔹 Update data user
   Future<void> updateUser(UserModel user) async {
     await userBox.put(user.uid, user);
   }
 
-  Future<void> clearAllUsers() async { 
-    await userBox.clear();
+  // ✅ Tambahan fungsi untuk tabungan
+  Future<void> addSavings(double amount) async {
+    await savingsBox.add(amount);
+  }
+
+  double getTotalSavings() {
+    double total = 0;
+    for (var amount in savingsBox.values) {
+      total += amount;
+    }
+    return total;
   }
 }
