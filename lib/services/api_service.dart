@@ -52,7 +52,7 @@ class DoaApiService {
       'ibnu-majah', 'malik', 'muslim', 'nasai', 'tirmidzi'
     ];
     
-    const int haditsPerKitab = 99; 
+    const int haditsPerKitab = 25; 
 
     List<Future<HaditsModel>> fetchTasks = [];
 

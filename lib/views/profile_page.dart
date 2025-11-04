@@ -54,12 +54,8 @@ class ProfilePage extends StatelessWidget {
                     children: [
                       CircleAvatar(
                         radius: 60,
-                        backgroundColor: theme.colorScheme.secondary,
-                        child: Icon(
-                          Icons.camera_alt, 
-                          size: 50,
-                          color: theme.primaryColor,
-                        ),
+                        backgroundImage: const AssetImage('assets/images/zahra.jpg'),
+                        backgroundColor: Colors.transparent,
                       ),
                       const SizedBox(height: 15),
 
