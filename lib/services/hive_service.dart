@@ -17,7 +17,6 @@ class HiveService {
   Box<UserModel> get userBox => Hive.box<UserModel>(userBoxName);
   Box<double> get savingsBox => Hive.box<double>(savingsBoxName);
 
-  // 🔹 Cari user berdasarkan email
   UserModel? getUserByEmail(String email) {
     try {
       return userBox.values.firstWhere(
@@ -28,7 +27,6 @@ class HiveService {
     }
   }
 
-  // 🔹 Cari user berdasarkan ID
   UserModel? getUserById(String uid) {
     try {
       return userBox.get(uid);
@@ -37,17 +35,14 @@ class HiveService {
     }
   }
 
-  // 🔹 Simpan user baru
   Future<void> saveUser(UserModel user) async {
     await userBox.put(user.uid, user);
   }
 
-  // 🔹 Update data user
   Future<void> updateUser(UserModel user) async {
     await userBox.put(user.uid, user);
   }
 
-  // ✅ Tambahan fungsi untuk tabungan
   Future<void> addSavings(double amount) async {
     await savingsBox.add(amount);
   }

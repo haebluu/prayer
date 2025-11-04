@@ -52,7 +52,6 @@ class ProfilePage extends StatelessWidget {
                   ),
                   child: Column(
                     children: [
-                      // Placeholder Foto Profil
                       CircleAvatar(
                         radius: 60,
                         backgroundColor: theme.colorScheme.secondary,

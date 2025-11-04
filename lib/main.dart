@@ -1,4 +1,3 @@
-// lib/main.dart (CORRECTED RootPage)
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -27,7 +26,6 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // ... (MyApp content remains the same)
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => UserController()),
@@ -57,13 +55,11 @@ class MyApp extends StatelessWidget {
   }
 }
 
-// FIX 3 & 4: Mengubah RootPage menjadi StatelessWidget sederhana
 class RootPage extends StatelessWidget {
   const RootPage({super.key});
 
   @override
   Widget build(BuildContext context) {
-    // Mengandalkan state dari UserController
     final userController = context.watch<UserController>(); 
     
     if (userController.isLoading) {

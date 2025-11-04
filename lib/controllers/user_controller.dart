@@ -17,7 +17,6 @@ class UserController extends ChangeNotifier {
     checkSession();
   }
 
-  // ✅ Cek session aktif saat app dibuka
   Future<void> checkSession() async {
     _isLoading = true;
     notifyListeners();
@@ -36,7 +35,6 @@ class UserController extends ChangeNotifier {
     notifyListeners();
   }
 
-  // ✅ Login logic yang aman
   Future<String?> login(String email, String password) async {
     _isLoading = true;
     notifyListeners();
@@ -62,7 +60,7 @@ class UserController extends ChangeNotifier {
 
       _isLoading = false;
       notifyListeners();
-      return null; // sukses
+      return null; 
     } catch (e) {
       _isLoading = false;
       notifyListeners();
@@ -110,7 +108,6 @@ class UserController extends ChangeNotifier {
     notifyListeners();
   }
 
-  // ✅ Tambahan supaya RootPage bisa panggil ini
   UserModel? getUserById(String uid) => _hiveService.getUserById(uid);
 
   void setCurrentUser(UserModel user) {

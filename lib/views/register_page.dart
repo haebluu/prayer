@@ -17,7 +17,6 @@ class _RegisterPageState extends State<RegisterPage> {
 
  @override
  Widget build(BuildContext context) {
-  // Menggunakan context.watch agar halaman me-rebuild saat isLoading berubah
   final userController = context.watch<UserController>();
   final theme = Theme.of(context);
 
@@ -28,7 +27,7 @@ class _RegisterPageState extends State<RegisterPage> {
      style: TextStyle(color: theme.colorScheme.onPrimary)
     ),
     backgroundColor: theme.primaryColor,
-    foregroundColor: Colors.white, // Tambahan foregroundColor agar ikon back putih
+    foregroundColor: Colors.white, 
     centerTitle: true,
    ),
    body: Center(
@@ -47,26 +46,24 @@ class _RegisterPageState extends State<RegisterPage> {
          mainAxisSize: MainAxisSize.min,
          crossAxisAlignment: CrossAxisAlignment.stretch,
          children: [
-          // ======= 1. INPUT NAMA (Diperbarui) =======
           TextFormField(
            controller: _nameController,
            decoration: const InputDecoration(
             labelText: "Nama",
-            prefixIcon: Icon(Icons.person_outline), // Ikon Baru
-            border: OutlineInputBorder(), // Border Baru
+            prefixIcon: Icon(Icons.person_outline), 
+            border: OutlineInputBorder(), 
            ),
            validator: (value) =>
              value!.isEmpty ? 'Nama tidak boleh kosong' : null,
           ),
           const SizedBox(height: 16),
           
-          // ======= 2. INPUT EMAIL (Diperbarui) =======
           TextFormField(
            controller: _emailController,
            decoration: const InputDecoration(
             labelText: "Email",
-            prefixIcon: Icon(Icons.email_outlined), // Ikon Baru
-            border: OutlineInputBorder(), // Border Baru
+            prefixIcon: Icon(Icons.email_outlined), 
+            border: OutlineInputBorder(), 
            ),
            keyboardType: TextInputType.emailAddress,
            validator: (value) =>
@@ -74,13 +71,12 @@ class _RegisterPageState extends State<RegisterPage> {
           ),
           const SizedBox(height: 16),
           
-          // ======= 3. INPUT PASSWORD (Diperbarui) =======
           TextFormField(
            controller: _passwordController,
            decoration: const InputDecoration(
             labelText: "Password",
-            prefixIcon: Icon(Icons.lock_outline), // Ikon Baru
-            border: OutlineInputBorder(), // Border Baru
+            prefixIcon: Icon(Icons.lock_outline), 
+            border: OutlineInputBorder(), 
            ),
            obscureText: true,
            validator: (value) =>
@@ -88,13 +84,11 @@ class _RegisterPageState extends State<RegisterPage> {
           ),
           const SizedBox(height: 24),
           
-          // ======= TOMBOL DAFTAR (Diperbarui) =======
           ElevatedButton(
            onPressed: userController.isLoading
              ? null
              : () async {
                if (_formKey.currentState!.validate()) {
-                // Gunakan context.read saat memanggil fungsi
                 final userControllerRead = context.read<UserController>(); 
                 
                 final result = await userControllerRead.register(
@@ -104,25 +98,22 @@ class _RegisterPageState extends State<RegisterPage> {
                 );
                 
                 if (result == null) {
-                 // Berhasil
                  if (context.mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
                    const SnackBar(
                     content: Text('Registrasi berhasil! Silakan login.'),
-                    backgroundColor: Colors.green, // Snack bar hijau
+                    backgroundColor: Colors.green, 
                    ),
                   );
                   
-                  // Navigasi yang benar: Kembali ke LoginPage
                   Navigator.pop(context); 
                  }
                 } else {
-                 // Gagal
                  if (context.mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
                    SnackBar(
                     content: Text(result),
-                    backgroundColor: Colors.redAccent, // Snack bar merah
+                    backgroundColor: Colors.redAccent, 
                    ),
                   );
                  }
@@ -131,19 +122,19 @@ class _RegisterPageState extends State<RegisterPage> {
               },
            style: ElevatedButton.styleFrom(
             padding: const EdgeInsets.symmetric(
-              vertical: 15, horizontal: 30), // Diperbarui
+              vertical: 15, horizontal: 30),
             backgroundColor: theme.colorScheme.secondary, 
             foregroundColor: theme.colorScheme.onPrimary,
             textStyle: const TextStyle(
              fontWeight: FontWeight.bold,
-             fontSize: 16, // Diperbarui
+             fontSize: 16,
             ),
-            shape: RoundedRectangleBorder( // Diperbarui
+            shape: RoundedRectangleBorder( 
              borderRadius: BorderRadius.circular(12),
             ),
            ),
            child: userController.isLoading
-             ? const SizedBox( // Diperbarui untuk konsistensi loading
+             ? const SizedBox( 
                width: 24,
                height: 24,
                child: CircularProgressIndicator(
@@ -156,15 +147,14 @@ class _RegisterPageState extends State<RegisterPage> {
           
           const SizedBox(height: 16),
           
-          // ======= LINK KE LOGIN (Diperbarui) =======
           TextButton(
            onPressed: () {
-            Navigator.pop(context); // Kembali ke LoginPage
+            Navigator.pop(context); 
            },
            child: const Text(
             "Sudah punya akun? Masuk di sini",
             style: TextStyle(
-             decoration: TextDecoration.underline, // Diperbarui
+             decoration: TextDecoration.underline, 
             ),
            ),
           )

@@ -46,7 +46,6 @@ class _LoginPageState extends State<LoginPage> {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    // ======= EMAIL =======
                     TextFormField(
                       controller: _emailController,
                       decoration: const InputDecoration(
@@ -60,7 +59,6 @@ class _LoginPageState extends State<LoginPage> {
                     ),
                     const SizedBox(height: 16),
 
-                    // ======= PASSWORD =======
                     TextFormField(
                       controller: _passwordController,
                       decoration: const InputDecoration(
@@ -74,7 +72,6 @@ class _LoginPageState extends State<LoginPage> {
                     ),
                     const SizedBox(height: 24),
 
-                    // ======= LOGIN BUTTON =======
                     ElevatedButton(
                       onPressed: userController.isLoading
                           ? null
@@ -86,7 +83,6 @@ class _LoginPageState extends State<LoginPage> {
                                 );
 
                                 if (result == null) {
-                                  // ✅ Login berhasil → RootPage akan rebuild otomatis
                                   if (context.mounted) {
                                     ScaffoldMessenger.of(context).showSnackBar(
                                       const SnackBar(
@@ -94,14 +90,12 @@ class _LoginPageState extends State<LoginPage> {
                                         backgroundColor: Colors.green,
                                       ),
                                     );
-                                    // Navigator.pop(context); // Kembali ke RootPage
                                     Navigator.of(context).pushAndRemoveUntil(
- MaterialPageRoute(builder: (context) => const RootPage()),
- (Route<dynamic> route) => false,
-);
+                                    MaterialPageRoute(builder: (context) => const RootPage()),
+                                    (Route<dynamic> route) => false,
+                                    );
                                   }
                                 } else {
-                                  // ❌ Login gagal → tampilkan snackbar
                                   if (context.mounted) {
                                     ScaffoldMessenger.of(context).showSnackBar(
                                       SnackBar(
@@ -139,7 +133,6 @@ class _LoginPageState extends State<LoginPage> {
                     ),
                     const SizedBox(height: 16),
 
-                    // ======= LINK KE REGISTER =======
                     TextButton(
                       onPressed: () {
                         Navigator.push(
