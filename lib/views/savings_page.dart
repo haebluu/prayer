@@ -21,8 +21,6 @@ class SavingsPage extends StatefulWidget {
 class _SavingsPageState extends State<SavingsPage> {
  final CurrencyService _currencyService = CurrencyService();
  final HiveService _hiveService = HiveService();
- // Note: _locationService field is unused in this class, but kept as per original file structure
- // static final LocationService _locationService = LocationService(); 
 
  final TextEditingController _amountController = TextEditingController();
 
@@ -44,14 +42,13 @@ class _SavingsPageState extends State<SavingsPage> {
  double _convertedTotalSavings = 0.0;
  double _convertedInputAmount = 0.0;
 
- String _statusMessage = 'Aplikasi siap konversi.';
+ String _statusMessage = 'Siap konversi.';
  bool _isLoading = false;
  String _currentTime = 'N/A';
 
  late List<String> _conversionTargets;
- String? _currentUserId; // Simpan User ID yang sedang aktif
+ String? _currentUserId; 
 
- // 🆕 FIELD BARU: Untuk menyimpan riwayat transaksi
  List<Map<String, dynamic>> _savingsHistory = []; 
 
  @override
@@ -64,9 +61,9 @@ class _SavingsPageState extends State<SavingsPage> {
     .toList();
 
   _targetTotalSavingsCurrency =
-    _conversionTargets.contains('SAR') ? 'SAR' : _conversionTargets.first;
+    _conversionTargets.contains('USD') ? 'USD' : _conversionTargets.first;
   _targetInputCurrency =
-    _conversionTargets.contains('SAR') ? 'SAR' : _conversionTargets.first;
+    _conversionTargets.contains('USD') ? 'USD' : _conversionTargets.first;
  }
   
  @override
@@ -279,7 +276,7 @@ class _SavingsPageState extends State<SavingsPage> {
 
   NotificationService.showInstantNotification( //
    id: DateTime.now().millisecondsSinceEpoch % 100000,
-   title: '跳 Tabungan Berhasil Disimpan!',
+   title: 'Tabungan Berhasil Disimpan!',
    body:
      'Anda baru saja menabung sejumlah $formattedAmount. Semangat mencapai target!',
   ); //
