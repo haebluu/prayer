@@ -21,15 +21,12 @@ class CurrencyService {
 
   static const List<String> availableCurrencies = [
     'IDR', 
-    'DINAR', 
     'USD', 
     'EUR', 
     'JPY', 
     'KRW', 
     'CNY',  
     'SAR',  
-    'CAD',  
-    'AUD',  
   ];
 
   Future<void> fetchRates() async {

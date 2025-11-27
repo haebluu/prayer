@@ -103,7 +103,6 @@ class _CurrencyConverterPageState extends State<CurrencyConverterPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // Hasil Konversi
             Card(
               elevation: 4,
               child: Padding(
@@ -125,7 +124,6 @@ class _CurrencyConverterPageState extends State<CurrencyConverterPage> {
             
             const SizedBox(height: 30),
 
-            // Input Jumlah
             TextField(
               controller: _amountController,
               keyboardType: const TextInputType.numberWithOptions(decimal: true),
@@ -142,7 +140,7 @@ class _CurrencyConverterPageState extends State<CurrencyConverterPage> {
 
             const SizedBox(height: 20),
 
-            // Dropdown Mata Uang Asal (FROM)
+            // Dropdown Mata Uang Asal 
             _buildCurrencyDropdown(
               label: 'Dari Mata Uang:',
               value: _fromCurrency,
@@ -157,7 +155,7 @@ class _CurrencyConverterPageState extends State<CurrencyConverterPage> {
 
             const SizedBox(height: 10),
 
-            // Tombol Tukar (Swap)
+            // Tombol Tukar 
             Center(
               child: IconButton(
                 icon: const Icon(Icons.swap_vert, size: 30, color:  Color(0xFFD4AF37)),
@@ -173,7 +171,7 @@ class _CurrencyConverterPageState extends State<CurrencyConverterPage> {
             
             const SizedBox(height: 10),
 
-            // Dropdown Mata Uang Tujuan (TO)
+            // Dropdown Mata Uang Tujuan 
             _buildCurrencyDropdown(
               label: 'Ke Mata Uang:',
               value: _toCurrency,
@@ -216,7 +214,6 @@ class _CurrencyConverterPageState extends State<CurrencyConverterPage> {
     );
   }
 
-  // Widget pembantu untuk Dropdown
   Widget _buildCurrencyDropdown({
     required String label, 
     required String value, 

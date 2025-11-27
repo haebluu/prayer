@@ -1,3 +1,5 @@
+// lib/views/savings_page.dart
+
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
@@ -19,7 +21,8 @@ class SavingsPage extends StatefulWidget {
 class _SavingsPageState extends State<SavingsPage> {
  final CurrencyService _currencyService = CurrencyService();
  final HiveService _hiveService = HiveService();
- static final LocationService _locationService = LocationService(); // Warning: Unused field
+ // Note: _locationService field is unused in this class, but kept as per original file structure
+ // static final LocationService _locationService = LocationService(); 
 
  final TextEditingController _amountController = TextEditingController();
 
@@ -48,6 +51,9 @@ class _SavingsPageState extends State<SavingsPage> {
  late List<String> _conversionTargets;
  String? _currentUserId; // Simpan User ID yang sedang aktif
 
+ // 🆕 FIELD BARU: Untuk menyimpan riwayat transaksi
+ List<Map<String, dynamic>> _savingsHistory = []; 
+
  @override
  void initState() {
   super.initState();
@@ -69,13 +75,12 @@ class _SavingsPageState extends State<SavingsPage> {
   final userController = context.read<UserController>();
   final newUserId = userController.currentUser?.uid;
     
-  // Cek apakah user telah berganti atau ini adalah pemuatan pertama
   if (newUserId != _currentUserId) {
    _currentUserId = newUserId;
    
-   // Reset dan muat ulang data untuk user baru
    _totalSavingsIDR = 0.0; 
    _convertedTotalSavings = 0.0;
+   _savingsHistory = []; 
    _loadInitialData();
   }
  }
@@ -87,23 +92,22 @@ class _SavingsPageState extends State<SavingsPage> {
  }
 
  void _loadInitialData() async {
-  // Jika user belum login, jangan lanjutkan
   if (_currentUserId == null || _currentUserId!.isEmpty) {
    setState(() {
     _totalSavingsIDR = 0.0;
+    _savingsHistory = [];
    });
    return;
   }
     
   setState(() {
-   // Menggunakan fungsi per user yang baru
-   _totalSavingsIDR = _hiveService.getUserTotalSavings(_currentUserId!);
+   _totalSavingsIDR = _hiveService.getUserTotalSavings(_currentUserId!); 
+   _savingsHistory = _hiveService.getUserSavingsHistory(_currentUserId!); 
   });
-  _fetchRates(); // Panggilan yang menyebabkan error, kini didefinisikan
-  _updateTimeDisplay(_selectedTimeZoneId); // Panggilan yang menyebabkan error, kini didefinisikan
+  _fetchRates(); 
+  _updateTimeDisplay(_selectedTimeZoneId); 
  }
 
- // 🛑 FUNGSI YANG HILANG DIKEMBALIKAN: _fetchRates
  Future<void> _fetchRates() async {
   setState(() {
    _isLoading = true;
@@ -132,7 +136,6 @@ class _SavingsPageState extends State<SavingsPage> {
   }
  }
 
- // 🛑 FUNGSI YANG HILANG DIKEMBALIKAN: _updateTimeDisplay
  void _updateTimeDisplay(String zoneId) {
   try {
    final location = tz.getLocation(zoneId);
@@ -152,8 +155,7 @@ class _SavingsPageState extends State<SavingsPage> {
  void _updateTotalSavingsConversion(String targetCurrency) {
   if (_currencyService.getRates().isEmpty || _currentUserId == null) return;
 
-  // Menggunakan fungsi per user
-  final totalIDR = _hiveService.getUserTotalSavings(_currentUserId!);
+  final totalIDR = _hiveService.getUserTotalSavings(_currentUserId!); //
 
   if (targetCurrency == _fromCurrency) {
    setState(() {
@@ -178,7 +180,6 @@ class _SavingsPageState extends State<SavingsPage> {
   }
  }
 
- // 🛑 FUNGSI YANG HILANG DIKEMBALIKAN: _updateInputConversion
  void _updateInputConversion() {
   if (_currencyService.getRates().isEmpty) {
    setState(() {
@@ -203,7 +204,7 @@ class _SavingsPageState extends State<SavingsPage> {
   if (inputAmount == 0.0) {
    setState(() {
     _convertedInputAmount = 0.0;
-    _statusMessage = 'Masukkan jumlah tabungan.';
+    _statusMessage = 'Masukkan nominal.';
    });
    return;
   }
@@ -262,26 +263,26 @@ class _SavingsPageState extends State<SavingsPage> {
    return;
   }
 
-  // Menggunakan fungsi per user
-  await _hiveService.addSavingsForUser(_currentUserId!, amount);
+  await _hiveService.addSavingsForUser(_currentUserId!, amount); //
 
   _amountController.clear();
   _updateTotalSavingsConversion(_targetTotalSavingsCurrency);
   _updateInputConversion();
+  
+  _savingsHistory = _hiveService.getUserSavingsHistory(_currentUserId!);
 
-  // Tampilkan notifikasi saat menabung
   final formattedAmount = NumberFormat.currency(
    locale: 'id_ID',
    symbol: 'Rp',
    decimalDigits: 0,
   ).format(amount);
 
-  NotificationService.showInstantNotification(
+  NotificationService.showInstantNotification( //
    id: DateTime.now().millisecondsSinceEpoch % 100000,
-   title: '💵 Tabungan Berhasil Disimpan!',
+   title: '跳 Tabungan Berhasil Disimpan!',
    body:
      'Anda baru saja menabung sejumlah $formattedAmount. Semangat mencapai target!',
-  );
+  ); //
 
   if (context.mounted) {
    ScaffoldMessenger.of(context).showSnackBar(
@@ -380,6 +381,7 @@ class _SavingsPageState extends State<SavingsPage> {
          ),
         ),
         const SizedBox(height: 20),
+        // Time Zone Card 
         Card(
          elevation: 2,
          color: theme.colorScheme.surface,
@@ -436,6 +438,7 @@ class _SavingsPageState extends State<SavingsPage> {
          ),
         ),
         const SizedBox(height: 20),
+        // Input Nominal 
         TextField(
          controller: _amountController,
          keyboardType:
@@ -452,6 +455,7 @@ class _SavingsPageState extends State<SavingsPage> {
          },
         ),
         const SizedBox(height: 20),
+        // Dropdown Konversi Input 
         InputDecorator(
          decoration: const InputDecoration(
           labelText: 'Konversi Input Ke Mata Uang:',
@@ -481,6 +485,7 @@ class _SavingsPageState extends State<SavingsPage> {
          ),
         ),
         const SizedBox(height: 30),
+        // Konversi Input Card 
         Card(
          elevation: 4,
          color: theme.colorScheme.secondary.withOpacity(0.8),
@@ -491,7 +496,7 @@ class _SavingsPageState extends State<SavingsPage> {
             Text(
              'Nilai Input dalam $_targetInputCurrency:',
              style: TextStyle(
-               fontSize: 18,
+               fontSize: 16,
                fontWeight: FontWeight.bold,
                color: theme.primaryColor),
             ),
@@ -500,7 +505,7 @@ class _SavingsPageState extends State<SavingsPage> {
              _formatCurrencyResult(
                _convertedInputAmount, _targetInputCurrency),
              style: TextStyle(
-               fontSize: 32,
+               fontSize: 28,
                color: theme.primaryColor,
                fontWeight: FontWeight.bold),
             ),
@@ -516,6 +521,7 @@ class _SavingsPageState extends State<SavingsPage> {
          ),
         ),
         const SizedBox(height: 20),
+        // Tombol Simpan 
         ElevatedButton.icon(
          onPressed: _isLoading ? null : _saveTransaction,
          icon: _isLoading
@@ -533,6 +539,45 @@ class _SavingsPageState extends State<SavingsPage> {
           foregroundColor: Colors.white,
          ),
         ),
+        
+        const SizedBox(height: 30),
+        const Text(
+          'Riwayat Transaksi Tabungan (IDR)',
+          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+        ),
+        const Divider(),
+        
+        if (_currentUserId == null || _currentUserId!.isEmpty)
+           const Center(child: Padding(
+             padding: EdgeInsets.all(16.0),
+             child: Text('Silakan login untuk melihat riwayat tabungan.'),
+           ))
+        else if (_savingsHistory.isEmpty)
+          const Center(child: Padding(
+            padding: EdgeInsets.all(16.0),
+            child: Text('Belum ada riwayat tabungan.'),
+          ))
+        else
+          Column(
+            children: _savingsHistory.map((transaction) {
+              final amount = transaction['amount'] as double;
+              final date = transaction['date'] as DateTime;
+              
+              return Card(
+                margin: const EdgeInsets.symmetric(vertical: 4),
+                elevation: 1,
+                child: ListTile(
+                  leading: Icon(Icons.account_balance_wallet, color: theme.primaryColor),
+                  title: Text(
+                    _formatCurrencyResult(amount, 'IDR'), 
+                    style: const TextStyle(fontWeight: FontWeight.bold)
+                  ),
+                  subtitle: Text(DateFormat('dd MMM yyyy, HH:mm').format(date)),
+                  trailing: const Text('Tabungan'),
+                ),
+              );
+            }).toList(),
+          ),
        ],
       ),
      ),
